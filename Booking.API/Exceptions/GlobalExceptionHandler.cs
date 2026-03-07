@@ -1,4 +1,4 @@
-﻿using Booking.Application.Common.Exceptions;
+using Booking.Application.Common.Exceptions;
 using FluentValidation;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
@@ -68,6 +68,13 @@ public sealed class GlobalExceptionHandler : IExceptionHandler
                 "https://httpstatuses.com/400",
                 "Validation failed",
                  "One or more validation errors occurred."
+            ),
+
+            UnauthorizedAccessException uae => new ExceptionDetails(
+                StatusCodes.Status401Unauthorized,
+                "https://httpstatuses.com/401",
+                "Unauthorized",
+                uae.Message
             ),
 
             UnauthorizedException ue => new ExceptionDetails(
