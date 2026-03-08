@@ -6,7 +6,7 @@ using Booking.Domain.Roles;
 using Booking.Domain.UserRoles;
 using MediatR;
 
-namespace Booking.Application.Features.BecomeOwner;
+namespace Booking.Application.Features.Users.BecomeOwner;
 
 public sealed class BecomeOwnerCommandHandler : IRequestHandler<BecomeOwnerCommand, Unit>
 {

@@ -1,6 +1,6 @@
 using FluentValidation;
 
-namespace Booking.Application.Features.BecomeOwner;
+namespace Booking.Application.Features.Users.BecomeOwner;
 
 public sealed class BecomeOwnerCommandValidator : AbstractValidator<BecomeOwnerCommand>
 {

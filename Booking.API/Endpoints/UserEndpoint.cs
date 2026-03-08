@@ -1,5 +1,5 @@
 ﻿using Booking.Application.Features.Auth.Login;
-using Booking.Application.Features.BecomeOwner;
+using Booking.Application.Features.Users.BecomeOwner;
 using Booking.Application.Features.Users.RegisterUser;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;

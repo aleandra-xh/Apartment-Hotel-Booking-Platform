@@ -15,6 +15,7 @@ namespace Booking.Application.Generics.Interfaces
 
         Task<int> SaveChangesAsync(CancellationToken ct = default);
         Task<T?> FirstOrDefaultAsync(Expression<Func<T, bool>> predicate, CancellationToken ct = default);
+        Task<List<T>> GetAllAsync(Expression<Func<T, bool>> predicate, CancellationToken ct = default);
     }
 }
 

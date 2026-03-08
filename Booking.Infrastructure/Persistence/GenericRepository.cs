@@ -35,6 +35,9 @@ public class GenericRepository<T> : IGenericRepository<T> where T : class
 
     public async Task<T?> FirstOrDefaultAsync(Expression<Func<T, bool>> predicate, CancellationToken ct = default)
     => await _dbSet.FirstOrDefaultAsync(predicate, ct);
+
+   public async Task<List<T>> GetAllAsync(Expression<Func<T, bool>> predicate, CancellationToken ct = default)
+    => await _dbSet.Where(predicate).ToListAsync(ct);
 }
 
 
