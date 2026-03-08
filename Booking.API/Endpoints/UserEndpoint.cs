@@ -1,6 +1,9 @@
 ﻿using Booking.Application.Features.Auth.Login;
+using Booking.Application.Features.BecomeOwner;
 using Booking.Application.Features.Users.RegisterUser;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
+using System.Reflection;
 
 namespace Booking.Api;
 
@@ -23,5 +26,18 @@ public static class UserEndpoint
             return Results.Ok(result);
         })
         .WithName("LoginUser");
+
+        // ---Become-Owner---
+
+        app.MapPost("/v1/users/become-owner", [Authorize] async (BecomeOwnerCommand command, ISender sender) =>
+        {
+            await sender.Send(command);
+            return Results.Ok("User is now an owner.");
+        })
+        .WithName("BecomeOwner");
+
+
+
     }
+
 }
