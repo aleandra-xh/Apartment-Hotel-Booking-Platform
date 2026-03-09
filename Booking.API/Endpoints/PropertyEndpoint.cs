@@ -1,5 +1,6 @@
 ﻿using Booking.Application.Features.Properties.CreateProperty;
 using Booking.Application.Features.Properties.GetMyProperties;
+using Booking.Application.Features.Properties.UpdateProperty;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 
@@ -27,6 +28,16 @@ public static class PropertyEndpoint
         })
         .WithName("GetMyProperties");
 
+        //---Update Property---
 
+        app.MapPut("/v1/properties/update/{id:guid}", [Authorize(Roles = "Owner")] async (
+            Guid id,
+            UpdatePropertyRequest request,
+            ISender sender) =>
+        {
+            await sender.Send(new UpdatePropertyCommand(id, request));
+            return Results.Ok("Property updated successfully.");
+        })
+        .WithName("UpdateProperty");
     }
 }   
