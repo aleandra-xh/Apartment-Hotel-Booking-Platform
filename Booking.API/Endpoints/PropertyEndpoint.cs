@@ -1,6 +1,7 @@
 ﻿using Booking.Application.Features.Properties.CreateProperty;
 using Booking.Application.Features.Properties.GetMyProperties;
 using Booking.Application.Features.Properties.UpdateProperty;
+using Booking.Application.Features.Properties.DeleteProperty;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 
@@ -39,5 +40,13 @@ public static class PropertyEndpoint
             return Results.Ok("Property updated successfully.");
         })
         .WithName("UpdateProperty");
+
+        //---Delete Property---
+        app.MapDelete("/v1/properties/delete/{id:guid}",
+        [Authorize(Roles = "Owner")] async (Guid id, ISender sender) =>
+        {
+            await sender.Send(new DeletePropertyCommand(id));
+            return Results.NoContent();
+        });
     }
 }   

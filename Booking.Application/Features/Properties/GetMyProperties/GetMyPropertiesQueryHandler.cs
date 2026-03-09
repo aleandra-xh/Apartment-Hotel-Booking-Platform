@@ -1,4 +1,4 @@
-using Booking.Application.Abstractions.Security;
+using Booking.Application.Abstractions.CreateProperty;
 using Booking.Application.Generics.Interfaces;
 using Booking.Domain.Properties;
 using MediatR;
