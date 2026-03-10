@@ -1,5 +1,6 @@
 ﻿using Booking.Application.Abstractions.CreateProperty;
 using Booking.Application.Abstractions.LogIn;
+using Booking.Application.Abstractions.Properties;
 using Booking.Application.Abstractions.Security;
 using Booking.Application.Abstractions.UserRegister;
 using Booking.Application.Generics.Interfaces;
@@ -25,6 +26,7 @@ public static class InfrastructureServiceRegistration
         services.AddScoped<IAuthManager, AuthManager>();
         services.AddScoped<IPasswordHasher, PasswordHasher>();
         services.AddScoped<ICurrentUserService, CurrentUserService>();
+        services.AddScoped<IPropertyRepository, PropertyRepository>();
 
         services.ConfigureJWT(configuration);
 

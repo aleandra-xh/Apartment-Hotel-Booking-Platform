@@ -1,7 +1,8 @@
 ﻿using Booking.Application.Features.Properties.CreateProperty;
-using Booking.Application.Features.Properties.GetMyProperties;
-using Booking.Application.Features.Properties.UpdateProperty;
 using Booking.Application.Features.Properties.DeleteProperty;
+using Booking.Application.Features.Properties.GetMyProperties;
+using Booking.Application.Features.Properties.GetPropertyById;
+using Booking.Application.Features.Properties.UpdateProperty;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 
@@ -47,6 +48,16 @@ public static class PropertyEndpoint
         {
             await sender.Send(new DeletePropertyCommand(id));
             return Results.NoContent();
-        });
+        })
+        .WithName("DeleteProperty");
+
+        //---Get Property By Id---
+        app.MapGet("/v1/properties/getbyid/{id:guid}", async (Guid id, ISender sender) =>
+        {
+            var result = await sender.Send(new GetPropertyByIdQuery(id));
+            return Results.Ok(result);
+        })
+        .WithName("GetPropertyById");
+
     }
 }   
