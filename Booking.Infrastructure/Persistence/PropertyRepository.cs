@@ -20,4 +20,45 @@ public sealed class PropertyRepository : IPropertyRepository
             .Include(p => p.Address)
             .FirstOrDefaultAsync(p => p.Id == propertyId, ct);
     }
+
+    public async Task<(List<Property> Items, int TotalCount)> SearchPropertiesAsync(
+        string? city,
+        int? maxGuests,
+        int? propertyType,
+        int page,
+        int pageSize,
+        CancellationToken ct = default)
+    {
+        var query = _dbContext.Properties
+            .Include(p => p.Address)
+            .AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(city))
+        {
+            var normalizedCity = city.Trim().ToLower();
+            query = query.Where(p => p.Address.City.ToLower() == normalizedCity);
+        }
+
+        if (maxGuests.HasValue)
+        {
+            query = query.Where(p => p.MaxGuests >= maxGuests.Value);
+        }
+
+        if (propertyType.HasValue)
+        {
+            query = query.Where(p => (int)p.PropertyType == propertyType.Value);
+        }
+
+        query = query.Where(p => p.IsActive && p.IsApproved);
+
+        var totalCount = await query.CountAsync(ct);
+
+        var items = await query
+            .OrderBy(p => p.Name)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(ct);
+
+        return (items, totalCount);
+    }
 }

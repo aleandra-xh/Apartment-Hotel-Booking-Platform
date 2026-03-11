@@ -5,4 +5,13 @@ namespace Booking.Application.Abstractions.Properties;
 public interface IPropertyRepository
 {
     Task<Property?> GetPropertyByIdWithDetailsAsync(Guid propertyId, CancellationToken ct = default);
+
+    Task<(List<Property> Items, int TotalCount)> SearchPropertiesAsync(
+        string? city,
+        int? maxGuests,
+        int? propertyType,
+        int page,
+        int pageSize,
+        CancellationToken ct = default);
+
 }

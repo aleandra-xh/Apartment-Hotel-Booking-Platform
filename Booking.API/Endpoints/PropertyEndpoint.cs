@@ -2,6 +2,7 @@
 using Booking.Application.Features.Properties.DeleteProperty;
 using Booking.Application.Features.Properties.GetMyProperties;
 using Booking.Application.Features.Properties.GetPropertyById;
+using Booking.Application.Features.Properties.SearchProperties;
 using Booking.Application.Features.Properties.UpdateProperty;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -59,5 +60,14 @@ public static class PropertyEndpoint
         })
         .WithName("GetPropertyById");
 
+        //---Search Property---
+        app.MapGet("/v1/properties/search", async (
+        [AsParameters] SearchPropertiesRequest request,
+        ISender sender) =>
+        {
+            var result = await sender.Send(new SearchPropertiesQuery(request));
+            return Results.Ok(result);
+        })
+        .WithName("SearchProperties");
     }
 }   
