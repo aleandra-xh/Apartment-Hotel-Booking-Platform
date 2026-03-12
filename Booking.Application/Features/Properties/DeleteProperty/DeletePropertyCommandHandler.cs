@@ -2,8 +2,8 @@
 using Booking.Application.Common.Exceptions;
 using Booking.Application.Generics.Interfaces;
 using Booking.Domain.Properties;
-using Booking.Application.Abstractions.CreateProperty;
 using MediatR;
+using Booking.Application.Abstractions.Security;
 
 
 namespace Booking.Application.Features.Properties.DeleteProperty;

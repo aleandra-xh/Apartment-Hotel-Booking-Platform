@@ -1,4 +1,3 @@
-using Booking.Application.Abstractions.CreateProperty;
 using Booking.Application.Abstractions.Security;
 using Microsoft.AspNetCore.Http;
 using System.Security.Claims;

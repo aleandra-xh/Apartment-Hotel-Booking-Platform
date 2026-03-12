@@ -1,4 +1,3 @@
-using Booking.Application.Abstractions.CreateProperty;
 using Booking.Application.Abstractions.Security;
 using Booking.Application.Common.Exceptions;
 using Booking.Application.Generics.Interfaces;

@@ -1,5 +1,4 @@
-﻿
-namespace Booking.Application.Abstractions.CreateProperty;
+﻿namespace Booking.Application.Abstractions.Security;
 
 public interface ICurrentUserService
 {
