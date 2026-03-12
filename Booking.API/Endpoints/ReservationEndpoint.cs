@@ -1,4 +1,5 @@
 ﻿using Booking.Application.Features.Reservations.CancelReservation;
+using Booking.Application.Features.Reservations.CompleteReservation;
 using Booking.Application.Features.Reservations.ConfirmReservation;
 using Booking.Application.Features.Reservations.CreateReservation;
 using Booking.Application.Features.Reservations.GetMyReservations;
@@ -23,6 +24,7 @@ public static class ReservationEndpoint
         })
         .WithName("CreateReservation");
 
+
         //---Get My Reservations---
         app.MapGet("/v1/reservations/my", [Authorize] async (ISender sender) =>
         {
@@ -31,6 +33,7 @@ public static class ReservationEndpoint
         })
         .WithName("GetMyReservations");
 
+
         //---Get Owner Reservation
         app.MapGet("/v1/reservations/owner", [Authorize(Roles = "Owner")] async (ISender sender) =>
         {
@@ -38,6 +41,7 @@ public static class ReservationEndpoint
             return Results.Ok(result);
         })
         .WithName("GetOwnerReservations");
+
 
         //---Cancel Reservation---
         app.MapPut("/v1/reservations/cancel/{id:guid}", [Authorize] async (Guid id,
@@ -48,6 +52,7 @@ public static class ReservationEndpoint
         })
         .WithName("CancelReservation");
 
+
         //---Confirm Reservation
         app.MapPut("/v1/reservations/confirm/{id:guid}", [Authorize(Roles = "Owner")] async (Guid id, ISender sender) =>
         {
@@ -56,6 +61,7 @@ public static class ReservationEndpoint
         })
         .WithName("ConfirmReservation");
 
+
         //--Reject Reservation
         app.MapPut("/v1/reservations/reject/{id:guid}", [Authorize(Roles = "Owner")] async (Guid id, ISender sender) =>
         {
@@ -63,5 +69,14 @@ public static class ReservationEndpoint
             return Results.Ok("Booking rejected successfully.");
         })
         .WithName("RejectReservation");
+
+
+        //---Complete Reservation---
+        app.MapPut("/v1/reservations/complete/{id:guid}", [Authorize(Roles = "Owner")] async (Guid id, ISender sender) =>
+        {
+            await sender.Send(new CompleteReservationCommand(id));
+            return Results.Ok("Booking completed successfully.");
+        })
+        .WithName("CompleteReservation");
     }
 }

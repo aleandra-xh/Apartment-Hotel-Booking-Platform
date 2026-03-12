@@ -4,6 +4,7 @@ using Booking.Application.Abstractions.Reservations;
 using Booking.Application.Abstractions.Security;
 using Booking.Application.Abstractions.UserRegister;
 using Booking.Application.Generics.Interfaces;
+using Booking.Infrastructure.BackgroundJobs;
 using Booking.Infrastructure.Contracts.AuthService;
 using Booking.Infrastructure.Contracts.Security;
 using Booking.Infrastructure.Persistence;
@@ -28,6 +29,7 @@ public static class InfrastructureServiceRegistration
         services.AddScoped<ICurrentUserService, CurrentUserService>();
         services.AddScoped<IPropertyRepository, PropertyRepository>();
         services.AddScoped<IReservationRepository, ReservationRepository>();
+        services.AddHostedService<ReservationCompletionService>();
         services.ConfigureJWT(configuration);
 
         return services;
