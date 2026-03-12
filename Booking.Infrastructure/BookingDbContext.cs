@@ -135,6 +135,27 @@ namespace Booking.Infrastructure
                 .HasForeignKey(r => r.PropertyId)
                 .OnDelete(DeleteBehavior.NoAction);
 
+            modelBuilder.Entity<Reservation>()
+                .Property(r => r.BookingStatus)
+                .HasConversion<int>();
+
+            // DECIMAL PRECISION
+            modelBuilder.Entity<Reservation>()
+                .Property(r => r.CleaningFee)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<Reservation>()
+                .Property(r => r.AmenitiesUpCharge)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<Reservation>()
+                .Property(r => r.PriceForPeriod)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<Reservation>()
+                .Property(r => r.TotalPrice)
+                .HasPrecision(18, 2);
+
             // REVIEW → BOOKING 
             modelBuilder.Entity<Review>()
                 .HasOne(r => r.Reservation)

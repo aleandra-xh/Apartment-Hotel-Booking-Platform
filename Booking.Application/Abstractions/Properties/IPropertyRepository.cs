@@ -14,4 +14,5 @@ public interface IPropertyRepository
         int pageSize,
         CancellationToken ct = default);
 
+    Task<Property?> GetPropertyForReservationAsync(Guid propertyId, CancellationToken ct = default);
 }

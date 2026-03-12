@@ -9,10 +9,10 @@ public class Reservation
     public Guid Id { get; set; }
 
     public Guid PropertyId { get; set; }
-    public Property Property { get; set; }
+    public Property Property { get; set; } = null!;
 
     public Guid GuestId { get; set; }
-    public User Guest { get; set; }
+    public User Guest { get; set; } = null!;
 
     public DateTime StartDate { get; set; }
     public DateTime EndDate { get; set; }

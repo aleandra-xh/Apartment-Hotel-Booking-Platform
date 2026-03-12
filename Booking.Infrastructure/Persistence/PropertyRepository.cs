@@ -1,5 +1,4 @@
-﻿
-using Booking.Application.Abstractions.Properties;
+﻿using Booking.Application.Abstractions.Properties;
 using Booking.Domain.Properties;
 using Microsoft.EntityFrameworkCore;
 
@@ -60,5 +59,11 @@ public sealed class PropertyRepository : IPropertyRepository
             .ToListAsync(ct);
 
         return (items, totalCount);
+    }
+
+    public async Task<Property?> GetPropertyForReservationAsync(Guid propertyId, CancellationToken ct = default)
+    {
+        return await _dbContext.Properties
+            .FirstOrDefaultAsync(p => p.Id == propertyId, ct);
     }
 }

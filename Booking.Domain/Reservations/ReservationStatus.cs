@@ -1,15 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
+﻿
 namespace Booking.Domain.Reservations
 {
     public enum ReservationStatus
     {
-        Pending,
+        Pending = 1,
         Confirmed,
         Rejected,
+        Cancelled,
         Completed,
-        Cancelled
+        Expired
     }
 }
