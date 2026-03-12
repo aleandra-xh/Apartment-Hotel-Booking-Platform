@@ -1,9 +1,10 @@
-﻿using Booking.Application.Features.Reservations.CreateReservation;
-using Booking.Application.Features.Reservations.CancelReservation;
+﻿using Booking.Application.Features.Reservations.CancelReservation;
 using Booking.Application.Features.Reservations.ConfirmReservation;
+using Booking.Application.Features.Reservations.CreateReservation;
+using Booking.Application.Features.Reservations.GetMyReservations;
+using Booking.Application.Features.Reservations.RejectReservation;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
-using Booking.Application.Features.Reservations.GetMyReservations;
 
 namespace Booking.API.Endpoints;
 
@@ -45,5 +46,13 @@ public static class ReservationEndpoint
             return Results.Ok("Reservation confirmed successfully.");
         })
         .WithName("ConfirmReservation");
+
+        //--Reject Reservation
+        app.MapPut("/v1/reservations/{id:guid}/reject", [Authorize(Roles = "Owner")] async (Guid id, ISender sender) =>
+        {
+            await sender.Send(new RejectReservationCommand(id));
+            return Results.Ok("Booking rejected successfully.");
+        })
+        .WithName("RejectReservation");
     }
 }
