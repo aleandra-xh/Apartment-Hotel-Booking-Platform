@@ -1,6 +1,6 @@
 ﻿using Booking.Application.Features.Reservations.CreateReservation;
 using Booking.Application.Features.Reservations.CancelReservation;
-
+using Booking.Application.Features.Reservations.ConfirmReservation;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Booking.Application.Features.Reservations.GetMyReservations;
@@ -37,5 +37,13 @@ public static class ReservationEndpoint
             return Results.Ok("Reservation cancelled successfully.");
         })
         .WithName("CancelReservation");
+
+        //---Confirm Reservation
+        app.MapPut("/v1/reservations/confirm/{id:guid}", [Authorize(Roles = "Owner")] async (Guid id, ISender sender) =>
+        {
+            await sender.Send(new ConfirmReservationCommand(id));
+            return Results.Ok("Reservation confirmed successfully.");
+        })
+        .WithName("ConfirmReservation");
     }
 }
