@@ -2,6 +2,7 @@
 using Booking.Application.Features.Reservations.ConfirmReservation;
 using Booking.Application.Features.Reservations.CreateReservation;
 using Booking.Application.Features.Reservations.GetMyReservations;
+using Booking.Application.Features.Reservations.GetOwnerReservations;
 using Booking.Application.Features.Reservations.RejectReservation;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -30,6 +31,14 @@ public static class ReservationEndpoint
         })
         .WithName("GetMyReservations");
 
+        //---Get Owner Reservation
+        app.MapGet("/v1/reservations/owner", [Authorize(Roles = "Owner")] async (ISender sender) =>
+        {
+            var result = await sender.Send(new GetOwnerReservationsQuery());
+            return Results.Ok(result);
+        })
+        .WithName("GetOwnerReservations");
+
         //---Cancel Reservation---
         app.MapPut("/v1/reservations/cancel/{id:guid}", [Authorize] async (Guid id,
             ISender sender) =>
@@ -48,7 +57,7 @@ public static class ReservationEndpoint
         .WithName("ConfirmReservation");
 
         //--Reject Reservation
-        app.MapPut("/v1/reservations/{id:guid}/reject", [Authorize(Roles = "Owner")] async (Guid id, ISender sender) =>
+        app.MapPut("/v1/reservations/reject/{id:guid}", [Authorize(Roles = "Owner")] async (Guid id, ISender sender) =>
         {
             await sender.Send(new RejectReservationCommand(id));
             return Results.Ok("Booking rejected successfully.");
