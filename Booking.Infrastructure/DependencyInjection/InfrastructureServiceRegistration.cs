@@ -30,6 +30,7 @@ public static class InfrastructureServiceRegistration
         services.AddScoped<IPropertyRepository, PropertyRepository>();
         services.AddScoped<IReservationRepository, ReservationRepository>();
         services.AddHostedService<ReservationCompletionService>();
+        services.AddHostedService<ReservationExpirationService>();
         services.ConfigureJWT(configuration);
 
         return services;
