@@ -1,4 +1,6 @@
 ﻿using Booking.Application.Features.Reservations.CreateReservation;
+using Booking.Application.Features.Reservations.CancelReservation;
+
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Booking.Application.Features.Reservations.GetMyReservations;
@@ -11,7 +13,8 @@ public static class ReservationEndpoint
     public static void MapReservationEndpoints(this IEndpointRouteBuilder app)
     {
         //---Create Reservation---
-        app.MapPost("/v1/reservations/create", [Authorize] async (CreateReservationCommand command, ISender sender) =>
+        app.MapPost("/v1/reservations/create", [Authorize] async (CreateReservationCommand command, 
+            ISender sender) =>
         {
             var reservationId = await sender.Send(command);
             return Results.Created($"/v1/reservations/{reservationId}", null);
@@ -25,5 +28,14 @@ public static class ReservationEndpoint
             return Results.Ok(result);
         })
         .WithName("GetMyReservations");
+
+        //---Cancel Reservation---
+        app.MapPut("/v1/reservations/cancel/{id:guid}", [Authorize] async (Guid id,
+            ISender sender) =>
+        {
+            await sender.Send(new CancelReservationCommand(id));
+            return Results.Ok("Reservation cancelled successfully.");
+        })
+        .WithName("CancelReservation");
     }
 }
