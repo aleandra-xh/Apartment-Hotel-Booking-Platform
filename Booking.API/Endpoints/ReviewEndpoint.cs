@@ -1,4 +1,5 @@
 ﻿using Booking.Application.Features.Reviews.CreateReview;
+using Booking.Application.Features.Reviews.GetPropertyReviews;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 
@@ -15,5 +16,15 @@ public static class ReviewEndpoint
             return Results.Created($"/v1/reviews/{reviewId}", null);
         })
         .WithName("CreateReview");
+
+
+        //---Get Property Reviews---
+        app.MapGet("/v1/reviews/property/{id:guid}", async (Guid id, ISender sender) =>
+        {
+            var result = await sender.Send(new GetPropertyReviewsQuery(id));
+            return Results.Ok(result);
+        })
+        .WithName("GetPropertyReviews");
+
     }
 }
