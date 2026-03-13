@@ -31,5 +31,7 @@ app.MapOpenApi();
 app.MapUserEndpoints();
 app.MapPropertyEndpoints();
 app.MapReservationEndpoints();
+app.MapReviewEndpoints();
+
 
 app.Run();
