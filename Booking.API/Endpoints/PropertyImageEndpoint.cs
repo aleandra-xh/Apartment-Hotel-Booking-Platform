@@ -1,4 +1,5 @@
-﻿using Booking.Application.Features.PropertyImages.GetPropertyImages;
+﻿using Booking.Application.Features.PropertyImages.DeletePropertyImage;
+using Booking.Application.Features.PropertyImages.GetPropertyImages;
 using Booking.Application.Features.PropertyImages.UploadPropertyImage;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -58,5 +59,13 @@ public static class PropertyImageEndpoint
             return Results.Ok(result);
         })
         .WithName("GetPropertyImages");
+
+        //---Delete Property Images---
+        app.MapDelete("/v1/properties/delete/images/{id:guid}", [Authorize(Roles = "Owner")] async (Guid id, ISender sender) =>
+        {
+            await sender.Send(new DeletePropertyImageCommand(id));
+            return Results.Ok("Property image deleted successfully.");
+        })
+        .WithName("DeletePropertyImage");
     }
 }
