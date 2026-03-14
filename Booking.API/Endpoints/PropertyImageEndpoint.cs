@@ -1,4 +1,5 @@
-﻿using Booking.Application.Features.PropertyImages.UploadPropertyImage;
+﻿using Booking.Application.Features.PropertyImages.GetPropertyImages;
+using Booking.Application.Features.PropertyImages.UploadPropertyImage;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 
@@ -49,5 +50,13 @@ public static class PropertyImageEndpoint
             return Results.Created($"/v1/properties/images/{id}", imageIds);
         })
         .WithName("UploadPropertyImages");
+
+        //---Get Property Images---
+        app.MapGet("/v1/properties/get/images/{id:guid}", async (Guid id, ISender sender) =>
+        {
+            var result = await sender.Send(new GetPropertyImagesQuery(id));
+            return Results.Ok(result);
+        })
+        .WithName("GetPropertyImages");
     }
 }
