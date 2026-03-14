@@ -1,6 +1,9 @@
 ﻿using Booking.Application.Features.Auth.Login;
 using Booking.Application.Features.Users.BecomeOwner;
+using Booking.Application.Features.Users.DeleteUserProfileImage;
+using Booking.Application.Features.Users.GetUserProfileImage;
 using Booking.Application.Features.Users.RegisterUser;
+using Booking.Application.Features.Users.UploadUserProfileImage;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using System.Reflection;
@@ -36,7 +39,52 @@ public static class UserEndpoint
         })
         .WithName("BecomeOwner");
 
+        //---Upload User Profile Image---
+        app.MapPost("/v1/users/profile-image", [Authorize] async (
+        HttpRequest request,
+        ISender sender,
+        CancellationToken ct) =>
+        {
+            if (!request.HasFormContentType)
+                return Results.BadRequest("Request must be sent as form-data.");
 
+            var form = await request.ReadFormAsync(ct);
+            var image = form.Files["image"];
+
+            if (image is null || image.Length == 0)
+                return Results.BadRequest("Image file is required.");
+
+            await using var memoryStream = new MemoryStream();
+            await image.CopyToAsync(memoryStream, ct);
+
+            var command = new UploadUserProfileImageCommand(
+                new UploadUserProfileImageRequest(
+                    image.FileName,
+                    image.ContentType,
+                    memoryStream.ToArray()
+                ));
+
+            var profileImageUrl = await sender.Send(command, ct);
+
+            return Results.Ok(new { profileImageUrl });
+        })
+        .WithName("UploadUserProfileImage");
+
+        //--- Get User Profile Image---
+        app.MapGet("/v1/users/profile-image/get", [Authorize] async (ISender sender) =>
+        {
+            var result = await sender.Send(new GetUserProfileImageQuery());
+            return Results.Ok(result);
+        })
+        .WithName("GetUserProfileImage");
+
+        //---Delete User Profile Image---
+        app.MapDelete("/v1/users/profile-image/delete", [Authorize] async (ISender sender) =>
+        {
+            await sender.Send(new DeleteUserProfileImageCommand());
+            return Results.Ok("Profile image deleted successfully.");
+        })
+        .WithName("DeleteUserProfileImage");
 
     }
 
