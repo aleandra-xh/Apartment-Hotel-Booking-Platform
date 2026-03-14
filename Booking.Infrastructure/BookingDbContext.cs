@@ -8,6 +8,7 @@ using Booking.Domain.Reservations;
 using Booking.Domain.Reviews;
 using Microsoft.EntityFrameworkCore;
 using Booking.Domain.PropertyAmenities;
+using Booking.Domain.PropertyImages;
 
 namespace Booking.Infrastructure
 {
@@ -23,6 +24,7 @@ namespace Booking.Infrastructure
         public DbSet<Address> Addresses { get; set; } = null!;
         public DbSet<Reservation> Reservations { get; set; } = null!;
         public DbSet<Review> Reviews { get; set; } = null!;
+        public DbSet<PropertyImage> PropertyImages { get; set; } = null!;
 
         public DbSet<PropertyAmenity> PropertyAmenities { get; set; } = null!;
 
@@ -119,6 +121,30 @@ namespace Booking.Infrastructure
                       .HasForeignKey(x => x.PropertyId)
                       .OnDelete(DeleteBehavior.Cascade);
             });
+
+            //PROPERTY → IMAGES
+            modelBuilder.Entity<PropertyImage>()
+            .HasOne(pi => pi.Property)
+            .WithMany(p => p.Images)
+            .HasForeignKey(pi => pi.PropertyId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<PropertyImage>()
+                .Property(pi => pi.ImageData)
+                .HasColumnType("varbinary(max)");
+
+            modelBuilder.Entity<PropertyImage>()
+                .Property(pi => pi.FileName)
+                .HasMaxLength(255);
+
+            modelBuilder.Entity<PropertyImage>()
+                .Property(pi => pi.ContentType)
+                .HasMaxLength(100);
+
+            //IMAGE HASH 
+            modelBuilder.Entity<PropertyImage>()
+                .Property(pi => pi.ImageHash)
+                .HasMaxLength(64);
 
 
             // RESERVATION → GUEST 

@@ -32,6 +32,6 @@ app.MapUserEndpoints();
 app.MapPropertyEndpoints();
 app.MapReservationEndpoints();
 app.MapReviewEndpoints();
-
+app.MapPropertyImageEndpoints();
 
 app.Run();

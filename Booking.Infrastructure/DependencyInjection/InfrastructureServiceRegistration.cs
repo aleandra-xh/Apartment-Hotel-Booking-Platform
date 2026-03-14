@@ -1,5 +1,6 @@
 ﻿using Booking.Application.Abstractions.LogIn;
 using Booking.Application.Abstractions.Properties;
+using Booking.Application.Abstractions.PropertyImages;
 using Booking.Application.Abstractions.Reservations;
 using Booking.Application.Abstractions.Security;
 using Booking.Application.Abstractions.UserRegister;
@@ -29,6 +30,8 @@ public static class InfrastructureServiceRegistration
         services.AddScoped<ICurrentUserService, CurrentUserService>();
         services.AddScoped<IPropertyRepository, PropertyRepository>();
         services.AddScoped<IReservationRepository, ReservationRepository>();
+        services.AddScoped<IPropertyImageRepository, PropertyImageRepository>();
+
         services.AddHostedService<ReservationCompletionService>();
         services.AddHostedService<ReservationExpirationService>();
         services.ConfigureJWT(configuration);

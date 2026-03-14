@@ -3,6 +3,7 @@ using Booking.Domain.Addresses;
 using Booking.Domain.Reservations;
 using Booking.Domain.Users;
 using Booking.Domain.PropertyAmenities;
+using Booking.Domain.PropertyImages;
 
 namespace Booking.Domain.Properties;
 
@@ -37,5 +38,6 @@ public class Property
 
     public List<Reservation> Reservations { get; set; } = new();
     public List<PropertyAmenity> Amenities { get; set; } = new();
+    public List<PropertyImage> Images { get; set; } = new();
 
 }
