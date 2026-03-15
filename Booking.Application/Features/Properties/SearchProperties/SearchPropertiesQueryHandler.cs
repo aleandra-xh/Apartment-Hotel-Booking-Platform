@@ -17,10 +17,18 @@ public sealed class SearchPropertiesQueryHandler
 
     public async Task<SearchPropertiesResponse> Handle(SearchPropertiesQuery request, CancellationToken ct)
     {
+        Console.WriteLine($"Handler City: {request.Request.City}");
+        Console.WriteLine($"Handler MaxGuests: {request.Request.MaxGuests}");
+        Console.WriteLine($"Handler PropertyType: {request.Request.PropertyType}");
+        Console.WriteLine($"Handler StartDate: {request.Request.StartDate}");
+        Console.WriteLine($"Handler EndDate: {request.Request.EndDate}");
+
         var result = await _propertyRepository.SearchPropertiesAsync(
             request.Request.City,
             request.Request.MaxGuests,
             request.Request.PropertyType,
+            request.Request.StartDate,
+            request.Request.EndDate,
             request.Request.Page,
             request.Request.PageSize,
             ct);

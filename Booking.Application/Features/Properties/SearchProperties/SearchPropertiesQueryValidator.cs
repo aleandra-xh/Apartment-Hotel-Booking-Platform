@@ -27,5 +27,16 @@ public sealed class SearchPropertiesQueryValidator : AbstractValidator<SearchPro
         RuleFor(x => x.Request.City)
             .MaximumLength(100)
             .When(x => !string.IsNullOrWhiteSpace(x.Request.City));
+
+        RuleFor(x => x.Request.StartDate)
+       .Must(startDate => !startDate.HasValue || startDate.Value.Date >= DateTime.UtcNow.Date)
+       .WithMessage("Start date cannot be in the past.");
+
+        RuleFor(x => x.Request.EndDate)
+            .Must((request, endDate) =>
+                !request.Request.StartDate.HasValue ||
+                !endDate.HasValue ||
+                endDate.Value.Date > request.Request.StartDate.Value.Date)
+            .WithMessage("End date must be greater than start date.");
     }
 }

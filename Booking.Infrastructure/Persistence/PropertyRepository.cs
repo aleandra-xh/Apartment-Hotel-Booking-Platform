@@ -1,5 +1,6 @@
 ﻿using Booking.Application.Abstractions.Properties;
 using Booking.Domain.Properties;
+using Booking.Domain.Reservations;
 using Microsoft.EntityFrameworkCore;
 
 namespace Booking.Infrastructure.Persistence;
@@ -24,12 +25,15 @@ public sealed class PropertyRepository : IPropertyRepository
         string? city,
         int? maxGuests,
         int? propertyType,
+        DateTime? startDate,
+        DateTime? endDate,
         int page,
         int pageSize,
         CancellationToken ct = default)
     {
         var query = _dbContext.Properties
             .Include(p => p.Address)
+            .Include(p => p.Reservations)
             .AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(city))
@@ -46,6 +50,22 @@ public sealed class PropertyRepository : IPropertyRepository
         if (propertyType.HasValue)
         {
             query = query.Where(p => (int)p.PropertyType == propertyType.Value);
+        }
+
+        Console.WriteLine($"Repo StartDate: {startDate}");
+        Console.WriteLine($"Repo EndDate: {endDate}");
+
+        if (startDate.HasValue && endDate.HasValue)
+        {
+            var start = startDate.Value.Date;
+            var end = endDate.Value.Date;
+
+            query = query.Where(p => !p.Reservations.Any(r =>
+                (r.BookingStatus == ReservationStatus.Pending ||
+                 r.BookingStatus == ReservationStatus.Confirmed) &&
+                start < r.EndDate.Date &&
+                end > r.StartDate.Date
+            ));
         }
 
         query = query.Where(p => p.IsActive && p.IsApproved);

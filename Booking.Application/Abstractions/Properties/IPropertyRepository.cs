@@ -10,6 +10,8 @@ public interface IPropertyRepository
         string? city,
         int? maxGuests,
         int? propertyType,
+        DateTime? startDate,
+        DateTime? endDate,
         int page,
         int pageSize,
         CancellationToken ct = default);

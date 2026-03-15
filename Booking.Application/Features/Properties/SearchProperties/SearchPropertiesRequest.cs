@@ -5,6 +5,8 @@ public sealed record SearchPropertiesRequest(
     string? City,
     int? MaxGuests,
     int? PropertyType,
+    DateTime? StartDate,
+    DateTime? EndDate,
     int Page = 1,
-    int PageSize = 20
+    int PageSize = 10
 );

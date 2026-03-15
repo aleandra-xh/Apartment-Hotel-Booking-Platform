@@ -61,9 +61,7 @@ public static class PropertyEndpoint
         .WithName("GetPropertyById");
 
         //---Search Property---
-        app.MapGet("/v1/properties/search", async (
-        [AsParameters] SearchPropertiesRequest request,
-        ISender sender) =>
+        app.MapPost("/v1/properties/search", async (SearchPropertiesRequest request, ISender sender) =>
         {
             var result = await sender.Send(new SearchPropertiesQuery(request));
             return Results.Ok(result);
