@@ -1,4 +1,5 @@
 ﻿using Booking.Application.Features.Reviews.CreateReview;
+using Booking.Application.Features.Reviews.GetPropertyAverageRating;
 using Booking.Application.Features.Reviews.GetPropertyReviews;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -26,5 +27,12 @@ public static class ReviewEndpoint
         })
         .WithName("GetPropertyReviews");
 
+        //---Get Property Average Rating---
+        app.MapGet("/v1/reviews/property/average-rating/{id:guid}", async (Guid id, ISender sender) =>
+        {
+            var result = await sender.Send(new GetPropertyAverageRatingQuery(id));
+            return Results.Ok(result);
+        })
+        .WithName("GetPropertyAverageRating");
     }
 }
