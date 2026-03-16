@@ -20,6 +20,9 @@ public class Reservation
     public int GuestCount { get; set; }
 
     public decimal CleaningFee { get; set; }
+    public decimal AdditionalGuestFee { get; set; }
+    public decimal ServiceFee { get; set; }
+    public decimal TaxAmount { get; set; }
     public decimal AmenitiesUpCharge { get; set; }
     public decimal PriceForPeriod { get; set; }
     public decimal TotalPrice { get; set; }

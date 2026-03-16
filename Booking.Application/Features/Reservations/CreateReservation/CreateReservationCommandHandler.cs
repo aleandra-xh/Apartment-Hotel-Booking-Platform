@@ -1,5 +1,4 @@
-﻿
-using Booking.Application.Abstractions.Properties;
+﻿using Booking.Application.Abstractions.Properties;
 using Booking.Application.Abstractions.Reservations;
 using Booking.Application.Common.Exceptions;
 using Booking.Application.Generics.Interfaces;
@@ -60,12 +59,23 @@ public sealed class CreateReservationCommandHandler : IRequestHandler<CreateRese
         if (hasOverlap)
             throw new ConflictException("Property is not available for the selected dates.");
 
-        var numberOfNights = (request.Request.EndDate.Date - request.Request.StartDate.Date).Days;
+        int numberOfNights = (request.Request.EndDate.Date - request.Request.StartDate.Date).Days;
 
-        var priceForPeriod = numberOfNights * 50m;
-        var cleaningFee = 10m;
-        var amenitiesUpCharge = 0m;
-        var totalPrice = priceForPeriod + cleaningFee + amenitiesUpCharge;
+        decimal priceForPeriod = property.PricePerNight * numberOfNights;
+
+        int extraGuests = Math.Max(0, request.Request.GuestCount - property.BaseGuestCount);
+
+        decimal additionalGuestFee = extraGuests * property.AdditionalGuestFeePerNight * numberOfNights;
+
+        decimal cleaningFee = property.CleaningFee;
+
+        decimal serviceFee = property.ServiceFee;
+
+        decimal subtotal = priceForPeriod + additionalGuestFee + cleaningFee + serviceFee;
+
+        decimal taxAmount = subtotal * (property.TaxPercentage / 100m);
+
+        decimal totalPrice = subtotal + taxAmount;
 
         var reservation = new Reservation
         {
@@ -75,10 +85,15 @@ public sealed class CreateReservationCommandHandler : IRequestHandler<CreateRese
             StartDate = request.Request.StartDate.Date,
             EndDate = request.Request.EndDate.Date,
             GuestCount = request.Request.GuestCount,
+
             CleaningFee = cleaningFee,
-            AmenitiesUpCharge = amenitiesUpCharge,
+            AdditionalGuestFee = additionalGuestFee,
+            ServiceFee = serviceFee,
+            TaxAmount = taxAmount,
+            AmenitiesUpCharge = 0,
             PriceForPeriod = priceForPeriod,
             TotalPrice = totalPrice,
+
             BookingStatus = ReservationStatus.Pending,
             CreatedAt = DateTime.UtcNow,
             CreatedOnUtc = DateTime.UtcNow

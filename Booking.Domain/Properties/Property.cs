@@ -25,6 +25,13 @@ public class Property
 
     public int MaxGuests { get; set; }
 
+    public decimal PricePerNight { get; set; }
+    public decimal CleaningFee { get; set; }
+    public decimal ServiceFee { get; set; }
+    public decimal TaxPercentage { get; set; }
+    public decimal AdditionalGuestFeePerNight { get; set; }
+    public int BaseGuestCount { get; set; }
+
     public TimeSpan CheckInTime { get; set; }
     public TimeSpan CheckOutTime { get; set; }
 

@@ -57,6 +57,36 @@ public sealed class UpdatePropertyCommandValidator : AbstractValidator<UpdatePro
         RuleForEach(x => x.Request.Amenities)
             .Must(value => Enum.IsDefined(typeof(Amenity), value))
             .WithMessage("Invalid amenity value.");
+
+        RuleFor(x => x.Request.PricePerNight)
+            .GreaterThan(0)
+            .WithMessage("Price per night must be greater than 0.");
+
+        RuleFor(x => x.Request.CleaningFee)
+            .GreaterThanOrEqualTo(0)
+            .WithMessage("Cleaning fee cannot be negative.");
+
+        RuleFor(x => x.Request.ServiceFee)
+            .GreaterThanOrEqualTo(0)
+            .WithMessage("Service fee cannot be negative.");
+
+        RuleFor(x => x.Request.TaxPercentage)
+            .GreaterThanOrEqualTo(0)
+            .WithMessage("Tax percentage cannot be negative.")
+            .LessThanOrEqualTo(100)
+            .WithMessage("Tax percentage cannot exceed 100.");
+
+        RuleFor(x => x.Request.AdditionalGuestFeePerNight)
+            .GreaterThanOrEqualTo(0)
+            .WithMessage("Additional guest fee per night cannot be negative.");
+
+        RuleFor(x => x.Request.BaseGuestCount)
+            .GreaterThan(0)
+            .WithMessage("Base guest count must be greater than 0.");
+
+        RuleFor(x => x.Request.BaseGuestCount)
+            .LessThanOrEqualTo(x => x.Request.MaxGuests)
+            .WithMessage("Base guest count cannot exceed max guests.");
     }
 
     private static bool BeValidTimeSpan(string value)
