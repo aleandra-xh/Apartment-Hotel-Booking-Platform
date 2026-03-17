@@ -3,6 +3,7 @@ using Booking.Application.Features.Users.BecomeOwner;
 using Booking.Application.Features.Users.DeleteUserProfileImage;
 using Booking.Application.Features.Users.GetUserProfileImage;
 using Booking.Application.Features.Users.RegisterUser;
+using Booking.Application.Features.Users.UpdateUserProfile;
 using Booking.Application.Features.Users.UploadUserProfileImage;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -86,6 +87,13 @@ public static class UserEndpoint
         })
         .WithName("DeleteUserProfileImage");
 
+        //---Update User Profile---
+        app.MapPut("/v1/users/profile", [Authorize] async (UpdateUserProfileCommand command, ISender sender) =>
+        {
+            await sender.Send(command);
+            return Results.Ok("Profile updated successfully.");
+        })
+        .WithName("UpdateUserProfile");
     }
 
 }
