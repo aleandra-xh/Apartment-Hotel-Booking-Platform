@@ -18,6 +18,8 @@ public sealed class PropertyRepository : IPropertyRepository
     {
         return await _dbContext.Properties
             .Include(p => p.Address)
+            .Include(p => p.Reservations)   
+            .Include(p => p.Amenities)
             .FirstOrDefaultAsync(p => p.Id == propertyId, ct);
     }
 
@@ -29,6 +31,7 @@ public sealed class PropertyRepository : IPropertyRepository
         DateTime? endDate,
         decimal? minPrice,
         decimal? maxPrice,
+        List<int>? amenityIds,
         int page,
         int pageSize,
         CancellationToken ct = default)
@@ -36,6 +39,7 @@ public sealed class PropertyRepository : IPropertyRepository
         var query = _dbContext.Properties
             .Include(p => p.Address)
             .Include(p => p.Reservations)
+            .Include(p => p.Amenities)
             .AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(city))
@@ -64,8 +68,12 @@ public sealed class PropertyRepository : IPropertyRepository
             query = query.Where(p => p.PricePerNight <= maxPrice.Value);
         }
 
-        Console.WriteLine($"Repo StartDate: {startDate}");
-        Console.WriteLine($"Repo EndDate: {endDate}");
+        if (amenityIds is { Count: > 0 })
+        {
+            query = query.Where(p =>
+                amenityIds.All(amenityId =>
+                    p.Amenities.Any(pa => (int)pa.Amenity == amenityId)));
+        }
 
         if (startDate.HasValue && endDate.HasValue)
         {

@@ -55,5 +55,9 @@ public sealed class SearchPropertiesQueryValidator : AbstractValidator<SearchPro
                 !maxPrice.HasValue ||
                 maxPrice.Value >= request.Request.MinPrice.Value)
             .WithMessage("Maximum price must be greater than or equal to minimum price.");
+
+        RuleFor(x => x.Request.AmenityIds)
+            .Must(ids => ids == null || ids.Count == 0 || ids.All(id => id > 0))
+            .WithMessage("Amenity ids must contain only positive values.");
     }
 }

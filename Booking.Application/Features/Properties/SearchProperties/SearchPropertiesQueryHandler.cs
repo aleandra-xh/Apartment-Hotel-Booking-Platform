@@ -31,6 +31,7 @@ public sealed class SearchPropertiesQueryHandler
             request.Request.EndDate,
             request.Request.MinPrice,
             request.Request.MaxPrice,
+            request.Request.AmenityIds,
             request.Request.Page,
             request.Request.PageSize,
             ct);

@@ -14,6 +14,7 @@ public interface IPropertyRepository
         DateTime? endDate,
         decimal? minPrice,
         decimal? maxPrice,
+        List<int>? amenityIds,
         int page,
         int pageSize,
         CancellationToken ct = default);
