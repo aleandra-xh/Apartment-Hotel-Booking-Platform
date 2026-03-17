@@ -53,4 +53,10 @@ public class User
             passwordHash, 
             dto.PhoneNumber);
 
+    public void UpdatePassword(string passwordHash)
+    {
+        Password = passwordHash;
+        LastModifiedAt = DateTime.UtcNow;
+    }
+
 }

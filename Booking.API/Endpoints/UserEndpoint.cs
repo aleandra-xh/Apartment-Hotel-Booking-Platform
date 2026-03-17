@@ -1,5 +1,6 @@
 ﻿using Booking.Application.Features.Auth.Login;
 using Booking.Application.Features.Users.BecomeOwner;
+using Booking.Application.Features.Users.ChangePassword;
 using Booking.Application.Features.Users.DeleteUserProfileImage;
 using Booking.Application.Features.Users.GetUserProfileImage;
 using Booking.Application.Features.Users.RegisterUser;
@@ -88,12 +89,20 @@ public static class UserEndpoint
         .WithName("DeleteUserProfileImage");
 
         //---Update User Profile---
-        app.MapPut("/v1/users/profile", [Authorize] async (UpdateUserProfileCommand command, ISender sender) =>
+        app.MapPut("/v1/users/update/profile", [Authorize] async (UpdateUserProfileCommand command, ISender sender) =>
         {
             await sender.Send(command);
             return Results.Ok("Profile updated successfully.");
         })
         .WithName("UpdateUserProfile");
+
+        //---Change Password---
+        app.MapPut("/v1/users/change/password", [Authorize] async (ChangePasswordCommand command, ISender sender) =>
+        {
+            await sender.Send(command);
+            return Results.Ok("Password changed successfully.");
+        })
+        .WithName("ChangePassword");
     }
 
 }
