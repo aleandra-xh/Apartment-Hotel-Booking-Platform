@@ -4,22 +4,27 @@ using Booking.Application.Generics.Interfaces;
 using Booking.Domain.Addresses;
 using Booking.Domain.Properties;
 using Booking.Domain.PropertyAmenities;
+using Booking.Application.Abstractions.Addresses;
 using MediatR;
+
 
 namespace Booking.Application.Features.Properties.CreateProperty;
 
 public sealed class CreatePropertyCommandHandler : IRequestHandler<CreatePropertyCommand, Guid>
 {
     private readonly IGenericRepository<Property> _propertyRepository;
-    private readonly IGenericRepository<Address> _addressRepository;
+    private readonly IGenericRepository<Address> _genericAddressRepository;
+    private readonly IAddressRepository _addressRepository;
     private readonly ICurrentUserService _currentUserService;
 
     public CreatePropertyCommandHandler(
         IGenericRepository<Property> propertyRepository,
-        IGenericRepository<Address> addressRepository,
+        IGenericRepository<Address> genericAddressRepository,
+        IAddressRepository addressRepository,
         ICurrentUserService currentUserService)
     {
         _propertyRepository = propertyRepository;
+        _genericAddressRepository = genericAddressRepository;
         _addressRepository = addressRepository;
         _currentUserService = currentUserService;
     }
@@ -27,6 +32,7 @@ public sealed class CreatePropertyCommandHandler : IRequestHandler<CreatePropert
     public async Task<Guid> Handle(CreatePropertyCommand request, CancellationToken ct)
     {
         var ownerId = _currentUserService.UserId;
+
         var alreadyExists = await _propertyRepository.AnyAsync(
             p => p.OwnerId == ownerId && p.Name == request.Request.Name,
             ct);
@@ -34,16 +40,32 @@ public sealed class CreatePropertyCommandHandler : IRequestHandler<CreatePropert
         if (alreadyExists)
             throw new ConflictException("You already have a property with this name.");
 
-        var address = new Address
-        {
-            Id = Guid.NewGuid(),
-            Country = request.Request.Address.Country,
-            City = request.Request.Address.City,
-            Street = request.Request.Address.Street,
-            PostalCode = request.Request.Address.PostalCode
-        };
+        var existingAddress = await _addressRepository.GetExistingAddressAsync(
+            request.Request.Address.Country,
+            request.Request.Address.City,
+            request.Request.Address.Street,
+            request.Request.Address.PostalCode,
+            ct);
 
-        await _addressRepository.AddAsync(address, ct);
+        Address address;
+
+        if (existingAddress is not null)
+        {
+            address = existingAddress;
+        }
+        else
+        {
+            address = new Address
+            {
+                Id = Guid.NewGuid(),
+                Country = request.Request.Address.Country,
+                City = request.Request.Address.City,
+                Street = request.Request.Address.Street,
+                PostalCode = request.Request.Address.PostalCode
+            };
+
+            await _genericAddressRepository.AddAsync(address, ct);
+        }
 
         var property = new Property
         {

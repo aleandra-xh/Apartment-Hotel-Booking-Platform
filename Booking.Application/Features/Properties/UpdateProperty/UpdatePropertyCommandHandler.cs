@@ -1,6 +1,8 @@
-﻿using Booking.Application.Abstractions.Security;
+﻿using Booking.Application.Abstractions.Addresses;
+using Booking.Application.Abstractions.Security;
 using Booking.Application.Common.Exceptions;
 using Booking.Application.Generics.Interfaces;
+using Booking.Domain.Addresses;
 using Booking.Domain.Properties;
 using Booking.Domain.PropertyAmenities;
 using MediatR;
@@ -12,15 +14,21 @@ public sealed class UpdatePropertyCommandHandler : IRequestHandler<UpdatePropert
 {
     private readonly IGenericRepository<Property> _propertyRepository;
     private readonly IGenericRepository<PropertyAmenity> _propertyAmenityRepository;
+    private readonly IGenericRepository<Address> _genericAddressRepository;
+    private readonly IAddressRepository _addressRepository;
     private readonly ICurrentUserService _currentUserService;
 
     public UpdatePropertyCommandHandler(
         IGenericRepository<Property> propertyRepository,
         IGenericRepository<PropertyAmenity> propertyAmenityRepository,
+        IGenericRepository<Address> genericAddressRepository,
+        IAddressRepository addressRepository,
         ICurrentUserService currentUserService)
     {
         _propertyRepository = propertyRepository;
         _propertyAmenityRepository = propertyAmenityRepository;
+        _genericAddressRepository = genericAddressRepository;
+        _addressRepository = addressRepository;
         _currentUserService = currentUserService;
     }
 
@@ -46,6 +54,32 @@ public sealed class UpdatePropertyCommandHandler : IRequestHandler<UpdatePropert
 
         if (duplicateExists)
             throw new ConflictException("You already have another property with this name.");
+
+        var existingAddress = await _addressRepository.GetExistingAddressAsync(
+            request.Request.Address.Country,
+            request.Request.Address.City,
+            request.Request.Address.Street,
+            request.Request.Address.PostalCode,
+            ct);
+
+        if (existingAddress is not null)
+        {
+            property.AddressId = existingAddress.Id;
+        }
+        else
+        {
+            var newAddress = new Address
+            {
+                Id = Guid.NewGuid(),
+                Country = request.Request.Address.Country,
+                City = request.Request.Address.City,
+                Street = request.Request.Address.Street,
+                PostalCode = request.Request.Address.PostalCode
+            };
+
+            await _genericAddressRepository.AddAsync(newAddress, ct);
+            property.AddressId = newAddress.Id;
+        }
 
         property.Name = request.Request.Name;
         property.Description = request.Request.Description;
@@ -95,4 +129,4 @@ public sealed class UpdatePropertyCommandHandler : IRequestHandler<UpdatePropert
 
         return Unit.Value;
     }
-}
+} 

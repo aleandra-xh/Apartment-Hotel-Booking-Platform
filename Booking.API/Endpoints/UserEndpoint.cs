@@ -8,7 +8,6 @@ using Booking.Application.Features.Users.UpdateUserProfile;
 using Booking.Application.Features.Users.UploadUserProfileImage;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
-using System.Reflection;
 
 namespace Booking.Api;
 

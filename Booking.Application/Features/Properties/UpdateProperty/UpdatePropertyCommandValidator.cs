@@ -11,6 +11,7 @@ public sealed class UpdatePropertyCommandValidator : AbstractValidator<UpdatePro
             .NotEmpty().WithMessage("Property id is required.");
 
         RuleFor(x => x.Request.Name)
+            .Cascade(CascadeMode.Stop)
             .NotEmpty().WithMessage("Property name is required.")
             .Must(name => !string.IsNullOrWhiteSpace(name))
             .WithMessage("Property name cannot be empty or whitespace.")
@@ -20,6 +21,7 @@ public sealed class UpdatePropertyCommandValidator : AbstractValidator<UpdatePro
             .WithMessage("Property name cannot start or end with spaces.");
 
         RuleFor(x => x.Request.Description)
+            .Cascade(CascadeMode.Stop)
             .NotEmpty().WithMessage("Description is required.")
             .Must(description => !string.IsNullOrWhiteSpace(description))
             .WithMessage("Description cannot be empty or whitespace.")
