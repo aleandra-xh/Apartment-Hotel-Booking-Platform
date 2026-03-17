@@ -59,5 +59,30 @@ public sealed class SearchPropertiesQueryValidator : AbstractValidator<SearchPro
         RuleFor(x => x.Request.AmenityIds)
             .Must(ids => ids == null || ids.Count == 0 || ids.All(id => id > 0))
             .WithMessage("Amenity ids must contain only positive values.");
+
+        RuleFor(x => x.Request.MinRating)
+            .GreaterThanOrEqualTo(0)
+            .When(x => x.Request.MinRating.HasValue)
+            .WithMessage("Minimum rating cannot be negative.");
+
+        RuleFor(x => x.Request.MinRating)
+            .LessThanOrEqualTo(5)
+            .When(x => x.Request.MinRating.HasValue)
+            .WithMessage("Minimum rating cannot exceed 5.");
+
+        RuleFor(x => x.Request.SortBy)
+            .Must(sortBy =>
+                string.IsNullOrWhiteSpace(sortBy) ||
+                sortBy.Equals("name", StringComparison.OrdinalIgnoreCase) ||
+                sortBy.Equals("price", StringComparison.OrdinalIgnoreCase) ||
+                sortBy.Equals("rating", StringComparison.OrdinalIgnoreCase))
+            .WithMessage("SortBy must be one of: name, price, rating.");
+
+        RuleFor(x => x.Request.SortDirection)
+            .Must(sortDirection =>
+                string.IsNullOrWhiteSpace(sortDirection) ||
+                sortDirection.Equals("asc", StringComparison.OrdinalIgnoreCase) ||
+                sortDirection.Equals("desc", StringComparison.OrdinalIgnoreCase))
+            .WithMessage("SortDirection must be either asc or desc.");
     }
 }

@@ -15,6 +15,9 @@ public interface IPropertyRepository
         decimal? minPrice,
         decimal? maxPrice,
         List<int>? amenityIds,
+        double? minRating,
+        string? sortBy,
+        string? sortDirection,
         int page,
         int pageSize,
         CancellationToken ct = default);

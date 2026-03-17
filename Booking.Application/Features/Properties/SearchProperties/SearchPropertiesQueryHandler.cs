@@ -32,6 +32,9 @@ public sealed class SearchPropertiesQueryHandler
             request.Request.MinPrice,
             request.Request.MaxPrice,
             request.Request.AmenityIds,
+            request.Request.MinRating,
+            request.Request.SortBy,
+            request.Request.SortDirection,
             request.Request.Page,
             request.Request.PageSize,
             ct);

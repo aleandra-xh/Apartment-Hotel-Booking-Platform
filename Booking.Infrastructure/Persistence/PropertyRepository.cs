@@ -18,7 +18,7 @@ public sealed class PropertyRepository : IPropertyRepository
     {
         return await _dbContext.Properties
             .Include(p => p.Address)
-            .Include(p => p.Reservations)   
+            .Include(p => p.Reservations)
             .Include(p => p.Amenities)
             .FirstOrDefaultAsync(p => p.Id == propertyId, ct);
     }
@@ -32,6 +32,9 @@ public sealed class PropertyRepository : IPropertyRepository
         decimal? minPrice,
         decimal? maxPrice,
         List<int>? amenityIds,
+        double? minRating,
+        string? sortBy,
+        string? sortDirection,
         int page,
         int pageSize,
         CancellationToken ct = default)
@@ -75,6 +78,15 @@ public sealed class PropertyRepository : IPropertyRepository
                     p.Amenities.Any(pa => (int)pa.Amenity == amenityId)));
         }
 
+        if (minRating.HasValue)
+        {
+            query = query.Where(p =>
+                _dbContext.Reviews.Any(rv => p.Reservations.Select(r => r.Id).Contains(rv.ReservationId)) &&
+                (_dbContext.Reviews
+                    .Where(rv => p.Reservations.Select(r => r.Id).Contains(rv.ReservationId))
+                    .Average(rv => (double?)rv.Rating) ?? 0) >= minRating.Value);
+        }
+
         if (startDate.HasValue && endDate.HasValue)
         {
             var start = startDate.Value.Date;
@@ -92,8 +104,37 @@ public sealed class PropertyRepository : IPropertyRepository
 
         var totalCount = await query.CountAsync(ct);
 
-        var items = await query
-            .OrderBy(p => p.Name)
+        IQueryable<Property> orderedQuery;
+
+        var sortByNormalized = sortBy?.Trim().ToLower();
+        var sortDirectionNormalized = sortDirection?.Trim().ToLower();
+
+        if (sortByNormalized == "price")
+        {
+            orderedQuery = sortDirectionNormalized == "desc"
+                ? query.OrderByDescending(p => p.PricePerNight)
+                : query.OrderBy(p => p.PricePerNight);
+        }
+        else if (sortByNormalized == "rating")
+        {
+            orderedQuery = sortDirectionNormalized == "desc"
+                ? query.OrderByDescending(p =>
+                    _dbContext.Reviews
+                        .Where(rv => p.Reservations.Select(r => r.Id).Contains(rv.ReservationId))
+                        .Average(rv => (double?)rv.Rating) ?? 0)
+                : query.OrderBy(p =>
+                    _dbContext.Reviews
+                        .Where(rv => p.Reservations.Select(r => r.Id).Contains(rv.ReservationId))
+                        .Average(rv => (double?)rv.Rating) ?? 0);
+        }
+        else
+        {
+            orderedQuery = sortDirectionNormalized == "desc"
+                ? query.OrderByDescending(p => p.Name)
+                : query.OrderBy(p => p.Name);
+        }
+
+        var items = await orderedQuery
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync(ct);
