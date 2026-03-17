@@ -38,5 +38,22 @@ public sealed class SearchPropertiesQueryValidator : AbstractValidator<SearchPro
                 !endDate.HasValue ||
                 endDate.Value.Date > request.Request.StartDate.Value.Date)
             .WithMessage("End date must be greater than start date.");
+
+        RuleFor(x => x.Request.MinPrice)
+            .GreaterThanOrEqualTo(0)
+            .When(x => x.Request.MinPrice.HasValue)
+            .WithMessage("Minimum price cannot be negative.");
+
+        RuleFor(x => x.Request.MaxPrice)
+            .GreaterThanOrEqualTo(0)
+            .When(x => x.Request.MaxPrice.HasValue)
+            .WithMessage("Maximum price cannot be negative.");
+
+        RuleFor(x => x.Request.MaxPrice)
+            .Must((request, maxPrice) =>
+                !request.Request.MinPrice.HasValue ||
+                !maxPrice.HasValue ||
+                maxPrice.Value >= request.Request.MinPrice.Value)
+            .WithMessage("Maximum price must be greater than or equal to minimum price.");
     }
 }

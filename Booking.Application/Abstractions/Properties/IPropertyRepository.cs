@@ -12,6 +12,8 @@ public interface IPropertyRepository
         int? propertyType,
         DateTime? startDate,
         DateTime? endDate,
+        decimal? minPrice,
+        decimal? maxPrice,
         int page,
         int pageSize,
         CancellationToken ct = default);

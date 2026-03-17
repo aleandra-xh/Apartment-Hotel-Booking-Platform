@@ -27,6 +27,8 @@ public sealed class PropertyRepository : IPropertyRepository
         int? propertyType,
         DateTime? startDate,
         DateTime? endDate,
+        decimal? minPrice,
+        decimal? maxPrice,
         int page,
         int pageSize,
         CancellationToken ct = default)
@@ -50,6 +52,16 @@ public sealed class PropertyRepository : IPropertyRepository
         if (propertyType.HasValue)
         {
             query = query.Where(p => (int)p.PropertyType == propertyType.Value);
+        }
+
+        if (minPrice.HasValue)
+        {
+            query = query.Where(p => p.PricePerNight >= minPrice.Value);
+        }
+
+        if (maxPrice.HasValue)
+        {
+            query = query.Where(p => p.PricePerNight <= maxPrice.Value);
         }
 
         Console.WriteLine($"Repo StartDate: {startDate}");

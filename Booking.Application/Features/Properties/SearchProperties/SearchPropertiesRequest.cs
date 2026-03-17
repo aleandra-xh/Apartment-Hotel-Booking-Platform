@@ -2,11 +2,13 @@
 namespace Booking.Application.Features.Properties.SearchProperties;
 
 public sealed record SearchPropertiesRequest(
-    string? City,
+     string? City,
     int? MaxGuests,
     int? PropertyType,
     DateTime? StartDate,
     DateTime? EndDate,
+    decimal? MinPrice,
+    decimal? MaxPrice,
     int Page = 1,
     int PageSize = 10
 );

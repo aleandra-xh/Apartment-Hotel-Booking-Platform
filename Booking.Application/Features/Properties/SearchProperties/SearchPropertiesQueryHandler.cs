@@ -29,6 +29,8 @@ public sealed class SearchPropertiesQueryHandler
             request.Request.PropertyType,
             request.Request.StartDate,
             request.Request.EndDate,
+            request.Request.MinPrice,
+            request.Request.MaxPrice,
             request.Request.Page,
             request.Request.PageSize,
             ct);
