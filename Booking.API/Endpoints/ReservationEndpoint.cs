@@ -5,6 +5,7 @@ using Booking.Application.Features.Reservations.CreateReservation;
 using Booking.Application.Features.Reservations.GetMyReservations;
 using Booking.Application.Features.Reservations.GetOwnerReservations;
 using Booking.Application.Features.Reservations.RejectReservation;
+using Booking.Domain.Reservations;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 
@@ -26,18 +27,23 @@ public static class ReservationEndpoint
 
 
         //---Get My Reservations---
-        app.MapGet("/v1/reservations/my", [Authorize] async (ISender sender) =>
+        app.MapGet("/v1/reservations/my", [Authorize] async (
+            ReservationStatus? status,
+            bool? isPast,
+            ISender sender) =>
         {
-            var result = await sender.Send(new GetMyReservationsQuery());
+            var result = await sender.Send(new GetMyReservationsQuery(status, isPast));
             return Results.Ok(result);
         })
         .WithName("GetMyReservations");
 
-
         //---Get Owner Reservation
-        app.MapGet("/v1/reservations/owner", [Authorize(Roles = "Owner")] async (ISender sender) =>
+        app.MapGet("/v1/reservations/owner", [Authorize(Roles = "Owner")] async (
+            ReservationStatus? status,
+            bool? isPast,
+            ISender sender) =>
         {
-            var result = await sender.Send(new GetOwnerReservationsQuery());
+            var result = await sender.Send(new GetOwnerReservationsQuery(status, isPast));
             return Results.Ok(result);
         })
         .WithName("GetOwnerReservations");

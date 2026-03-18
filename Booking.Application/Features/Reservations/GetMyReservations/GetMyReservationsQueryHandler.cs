@@ -29,6 +29,38 @@ public sealed class GetMyReservationsQueryHandler
             r => r.GuestId == guestId,
             ct);
 
+        if (request.Status.HasValue)
+        {
+            reservations = reservations
+                .Where(r => r.BookingStatus == request.Status.Value)
+                .ToList();
+        }
+
+        if (request.Status.HasValue)
+        {
+            reservations = reservations
+                .Where(r => r.BookingStatus == request.Status.Value)
+                .ToList();
+        }
+        else
+        {
+            if (request.IsPast.HasValue)
+            {
+                reservations = request.IsPast.Value
+                    ? reservations.Where(r => r.BookingStatus == ReservationStatus.Completed).ToList()
+                    : reservations.Where(r =>
+                        r.BookingStatus == ReservationStatus.Pending ||
+                        r.BookingStatus == ReservationStatus.Confirmed).ToList();
+            }
+            else
+            {
+                reservations = reservations.Where(r =>
+                    r.BookingStatus == ReservationStatus.Pending ||
+                    r.BookingStatus == ReservationStatus.Confirmed ||
+                    r.BookingStatus == ReservationStatus.Completed).ToList();
+            }
+        }
+
         return reservations
             .OrderByDescending(r => r.CreatedAt)
             .Select(r => new GetMyReservationsResponse(
