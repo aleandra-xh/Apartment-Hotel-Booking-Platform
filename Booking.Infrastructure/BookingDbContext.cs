@@ -194,6 +194,33 @@ namespace Booking.Infrastructure
                 .Property(r => r.TaxAmount)
                 .HasPrecision(18, 2);
 
+            modelBuilder.Entity<Reservation>()
+                .Property(r => r.RefundAmount)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<Reservation>()
+                .Property(r => r.PenaltyAmount)
+                .HasPrecision(18, 2);
+            modelBuilder.Entity<Property>()
+                .Property(p => p.PricePerNight)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<Property>()
+                .Property(p => p.CleaningFee)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<Property>()
+                .Property(p => p.ServiceFee)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<Property>()
+                .Property(p => p.TaxPercentage)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<Property>()
+                .Property(p => p.AdditionalGuestFeePerNight)
+                .HasPrecision(18, 2);
+
             // REVIEW → BOOKING 
             modelBuilder.Entity<Review>()
                 .HasOne(r => r.Reservation)

@@ -5,6 +5,7 @@ using Booking.Application.Features.Reservations.CreateReservation;
 using Booking.Application.Features.Reservations.GetMyReservations;
 using Booking.Application.Features.Reservations.GetOwnerReservations;
 using Booking.Application.Features.Reservations.GetReservationDetails;
+using Booking.Application.Features.Reservations.HostCancelReservation;
 using Booking.Application.Features.Reservations.RejectReservation;
 using Booking.Domain.Reservations;
 using MediatR;
@@ -38,7 +39,7 @@ public static class ReservationEndpoint
         })
         .WithName("GetMyReservations");
 
-        //---Get Owner Reservation
+        //---Get Owner Reservation--- 
         app.MapGet("/v1/reservations/owner", [Authorize(Roles = "Owner")] async (
             ReservationStatus? status,
             bool? isPast,
@@ -87,12 +88,22 @@ public static class ReservationEndpoint
         .WithName("CompleteReservation");
 
 
-        //---GetReservationDetails---
+        //---Get Reservation Details---
         app.MapGet("/v1/reservations/{id:guid}", [Authorize] async (Guid id, ISender sender) =>
         {
             var result = await sender.Send(new GetReservationDetailsQuery(id));
             return Results.Ok(result);
         })
         .WithName("GetReservationDetails");
+
+        //---Host Cancel Reservation
+        app.MapPut("/v1/reservations/host-cancel/{id:guid}", [Authorize(Roles = "Owner")] async (
+            Guid id,
+            ISender sender) =>
+        {
+            await sender.Send(new HostCancelReservationCommand(id));
+            return Results.Ok("Reservation cancelled successfully by host.");
+        })
+        .WithName("HostCancelReservation");
     }
 }

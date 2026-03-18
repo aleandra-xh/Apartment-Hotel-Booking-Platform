@@ -26,6 +26,9 @@ public class Reservation
     public decimal AmenitiesUpCharge { get; set; }
     public decimal PriceForPeriod { get; set; }
     public decimal TotalPrice { get; set; }
+    public decimal RefundAmount { get; set; }
+    public decimal PenaltyAmount { get; set; }
+
 
     public ReservationStatus BookingStatus { get; set; }
 
