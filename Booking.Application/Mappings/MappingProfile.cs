@@ -4,6 +4,7 @@ using Booking.Application.Features.PropertyImages.GetPropertyImages;
 using Booking.Application.Features.Reservations.GetMyReservations;
 using Booking.Application.Features.Reservations.GetOwnerReservations;
 using Booking.Application.Features.Reviews.GetPropertyReviews;
+using Booking.Application.Features.Reservations.GetReservationDetails;
 using Booking.Domain.PropertyImages;
 using Booking.Domain.Reservations;
 using Booking.Domain.Reviews;
@@ -26,5 +27,6 @@ public sealed class MappingProfile : Profile
                 "Base64Image",
                 opt => opt.MapFrom(src => Convert.ToBase64String(src.ImageData))
             );
+        CreateMap<Reservation, GetReservationDetailsResponse>();
     }
 }

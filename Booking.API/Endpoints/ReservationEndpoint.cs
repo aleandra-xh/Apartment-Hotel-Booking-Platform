@@ -4,6 +4,7 @@ using Booking.Application.Features.Reservations.ConfirmReservation;
 using Booking.Application.Features.Reservations.CreateReservation;
 using Booking.Application.Features.Reservations.GetMyReservations;
 using Booking.Application.Features.Reservations.GetOwnerReservations;
+using Booking.Application.Features.Reservations.GetReservationDetails;
 using Booking.Application.Features.Reservations.RejectReservation;
 using Booking.Domain.Reservations;
 using MediatR;
@@ -84,5 +85,14 @@ public static class ReservationEndpoint
             return Results.Ok("Booking completed successfully.");
         })
         .WithName("CompleteReservation");
+
+
+        //---GetReservationDetails---
+        app.MapGet("/v1/reservations/{id:guid}", [Authorize] async (Guid id, ISender sender) =>
+        {
+            var result = await sender.Send(new GetReservationDetailsQuery(id));
+            return Results.Ok(result);
+        })
+        .WithName("GetReservationDetails");
     }
 }
