@@ -92,6 +92,17 @@ public sealed class CreatePropertyCommandValidator : AbstractValidator<CreatePro
         RuleFor(x => x.Request.BaseGuestCount)
             .LessThanOrEqualTo(x => x.Request.MaxGuests)
             .WithMessage("Base guest count cannot exceed max guests.");
+        RuleFor(x => x.Request.MinStayNights)
+            .GreaterThan(0)
+            .WithMessage("Minimum stay nights must be greater than 0.");
+
+        RuleFor(x => x.Request.MaxStayNights)
+            .GreaterThan(0)
+            .WithMessage("Maximum stay nights must be greater than 0.");
+
+        RuleFor(x => x.Request.MaxStayNights)
+            .GreaterThanOrEqualTo(x => x.Request.MinStayNights)
+            .WithMessage("Maximum stay nights must be greater than or equal to minimum stay nights.");
     }
 
     private static bool BeValidTimeSpan(string value)

@@ -82,6 +82,8 @@ public sealed class CreatePropertyCommandHandler : IRequestHandler<CreatePropert
             TaxPercentage = request.Request.TaxPercentage,
             AdditionalGuestFeePerNight = request.Request.AdditionalGuestFeePerNight,
             BaseGuestCount = request.Request.BaseGuestCount,
+            MinStayNights = request.Request.MinStayNights,
+            MaxStayNights = request.Request.MaxStayNights,
             CheckInTime = TimeSpan.Parse(request.Request.CheckInTime),
             CheckOutTime = TimeSpan.Parse(request.Request.CheckOutTime),
             IsActive = true,

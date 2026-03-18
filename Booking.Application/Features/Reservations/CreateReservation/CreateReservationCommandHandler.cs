@@ -50,6 +50,14 @@ public sealed class CreateReservationCommandHandler : IRequestHandler<CreateRese
         if (property.OwnerId == guestId)
             throw new ConflictException("Owners cannot reserve their own property.");
 
+        int numberOfNights = (request.Request.EndDate.Date - request.Request.StartDate.Date).Days;
+
+        if (numberOfNights < property.MinStayNights)
+            throw new ConflictException($"Minimum stay for this property is {property.MinStayNights} nights.");
+
+        if (numberOfNights > property.MaxStayNights)
+            throw new ConflictException($"Maximum stay for this property is {property.MaxStayNights} nights.");
+
         var hasOverlap = await _reservationRepository.HasOverlappingReservationAsync(
             request.Request.PropertyId,
             request.Request.StartDate,
@@ -58,8 +66,6 @@ public sealed class CreateReservationCommandHandler : IRequestHandler<CreateRese
 
         if (hasOverlap)
             throw new ConflictException("Property is not available for the selected dates.");
-
-        int numberOfNights = (request.Request.EndDate.Date - request.Request.StartDate.Date).Days;
 
         decimal priceForPeriod = property.PricePerNight * numberOfNights;
 

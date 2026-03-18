@@ -91,6 +91,8 @@ public sealed class UpdatePropertyCommandHandler : IRequestHandler<UpdatePropert
         property.TaxPercentage = request.Request.TaxPercentage;
         property.AdditionalGuestFeePerNight = request.Request.AdditionalGuestFeePerNight;
         property.BaseGuestCount = request.Request.BaseGuestCount;
+        property.MinStayNights = request.Request.MinStayNights;
+        property.MaxStayNights = request.Request.MaxStayNights;
         property.CheckInTime = TimeSpan.Parse(request.Request.CheckInTime);
         property.CheckOutTime = TimeSpan.Parse(request.Request.CheckOutTime);
         property.LastModifiedAt = DateTime.UtcNow;

@@ -91,6 +91,11 @@ public sealed class PropertyRepository : IPropertyRepository
         {
             var start = startDate.Value.Date;
             var end = endDate.Value.Date;
+            var numberOfNights = (end - start).Days;
+
+            query = query.Where(p =>
+                numberOfNights >= p.MinStayNights &&
+                numberOfNights <= p.MaxStayNights);
 
             query = query.Where(p => !p.Reservations.Any(r =>
                 (r.BookingStatus == ReservationStatus.Pending ||

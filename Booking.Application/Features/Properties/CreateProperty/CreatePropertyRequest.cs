@@ -15,6 +15,8 @@ public sealed record CreatePropertyRequest
     decimal TaxPercentage,
     decimal AdditionalGuestFeePerNight,
     int BaseGuestCount,
+    int MinStayNights,
+    int MaxStayNights,
     string CheckInTime,
     string CheckOutTime,
     List<int> Amenities
