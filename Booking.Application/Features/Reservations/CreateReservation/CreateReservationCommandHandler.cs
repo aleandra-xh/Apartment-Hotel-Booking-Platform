@@ -3,6 +3,7 @@ using Booking.Application.Abstractions.Reservations;
 using Booking.Application.Common.Exceptions;
 using Booking.Application.Generics.Interfaces;
 using Booking.Domain.Reservations;
+using Booking.Application.Abstractions.PropertyBlockedDates;
 using MediatR;
 using Booking.Application.Abstractions.Security;
 
@@ -14,17 +15,20 @@ public sealed class CreateReservationCommandHandler : IRequestHandler<CreateRese
     private readonly IReservationRepository _reservationRepository;
     private readonly IGenericRepository<Reservation> _genericReservationRepository;
     private readonly ICurrentUserService _currentUserService;
+    private readonly IPropertyBlockedDateRepository _blockedDateRepository;
 
     public CreateReservationCommandHandler(
         IPropertyRepository propertyRepository,
         IReservationRepository reservationRepository,
         IGenericRepository<Reservation> genericReservationRepository,
+        IPropertyBlockedDateRepository blockedDateRepository,
         ICurrentUserService currentUserService)
     {
         _propertyRepository = propertyRepository;
         _reservationRepository = reservationRepository;
         _genericReservationRepository = genericReservationRepository;
         _currentUserService = currentUserService;
+        _blockedDateRepository = blockedDateRepository;
     }
 
     public async Task<Guid> Handle(CreateReservationCommand request, CancellationToken ct)
@@ -57,6 +61,15 @@ public sealed class CreateReservationCommandHandler : IRequestHandler<CreateRese
 
         if (numberOfNights > property.MaxStayNights)
             throw new ConflictException($"Maximum stay for this property is {property.MaxStayNights} nights.");
+
+        var hasBlockedDates = await _blockedDateRepository.HasOverlappingBlockedDateAsync(
+            request.Request.PropertyId,
+            request.Request.StartDate,
+            request.Request.EndDate,
+            ct);
+
+        if (hasBlockedDates)
+            throw new ConflictException("Property is blocked for the selected dates.");
 
         var hasOverlap = await _reservationRepository.HasOverlappingReservationAsync(
             request.Request.PropertyId,

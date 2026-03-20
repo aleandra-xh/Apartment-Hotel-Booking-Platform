@@ -1,14 +1,15 @@
-using Booking.Domain.Users;
-using Booking.Domain.Roles;
-using Booking.Domain.UserRoles;
+using Booking.Domain.Addresses;
 using Booking.Domain.OwnerProfiles;
 using Booking.Domain.Properties;
-using Booking.Domain.Addresses;
+using Booking.Domain.PropertyAmenities;
+using Booking.Domain.PropertyBlockedDates;
+using Booking.Domain.PropertyImages;
 using Booking.Domain.Reservations;
 using Booking.Domain.Reviews;
+using Booking.Domain.Roles;
+using Booking.Domain.UserRoles;
+using Booking.Domain.Users;
 using Microsoft.EntityFrameworkCore;
-using Booking.Domain.PropertyAmenities;
-using Booking.Domain.PropertyImages;
 
 namespace Booking.Infrastructure
 {
@@ -27,6 +28,7 @@ namespace Booking.Infrastructure
         public DbSet<PropertyImage> PropertyImages { get; set; } = null!;
 
         public DbSet<PropertyAmenity> PropertyAmenities { get; set; } = null!;
+        public DbSet<PropertyBlockedDate> PropertyBlockedDates => Set<PropertyBlockedDate>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -235,7 +237,15 @@ namespace Booking.Infrastructure
                 .HasForeignKey(r => r.GuestId)
                 .OnDelete(DeleteBehavior.NoAction);
 
+            //PROPERTYBLOCKEDDATES → PROPERTY
+            modelBuilder.Entity<PropertyBlockedDate>()
+                .HasOne(pbd => pbd.Property)
+                .WithMany(p => p.BlockedDates)
+                .HasForeignKey(pbd => pbd.PropertyId)
+                .OnDelete(DeleteBehavior.Cascade);
 
+            modelBuilder.Entity<PropertyBlockedDate>()
+                .HasIndex(pbd => pbd.PropertyId);
         }
 
     }

@@ -4,6 +4,9 @@ using Booking.Application.Features.Properties.GetMyProperties;
 using Booking.Application.Features.Properties.GetPropertyById;
 using Booking.Application.Features.Properties.SearchProperties;
 using Booking.Application.Features.Properties.UpdateProperty;
+using Booking.Application.Features.PropertyBlockedDates.BlockPropertyDates;
+using Booking.Application.Features.PropertyBlockedDates.GetPropertyBlockedDates;
+using Booking.Application.Features.PropertyBlockedDates.DeleteBlockedDate;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 
@@ -67,5 +70,40 @@ public static class PropertyEndpoint
             return Results.Ok(result);
         })
         .WithName("SearchProperties");
+
+
+        //---Block Property Dates---
+        app.MapPost("/v1/properties/blocked-dates", [Authorize(Roles = "Owner")] async (
+    BlockPropertyDatesCommand command,
+    ISender sender) =>
+        {
+            var blockedDateId = await sender.Send(command);
+            return Results.Created($"/v1/properties/blocked-dates/{blockedDateId}", null);
+        })
+            .WithName("BlockPropertyDates");
+
+
+        //---Get Property Blocked Dates---
+
+        app.MapGet("/v1/properties/{propertyId:guid}/blocked-dates", [Authorize(Roles = "Owner")] async (
+            Guid propertyId,
+            ISender sender) =>
+        {
+            var result = await sender.Send(new GetPropertyBlockedDatesQuery(propertyId));
+            return Results.Ok(result);
+        })
+        .WithName("GetPropertyBlockedDates");
+
+
+        //---Delete Blocked Date---
+
+        app.MapDelete("/v1/properties/blocked-dates/{id:guid}", [Authorize(Roles = "Owner")] async (
+            Guid id,
+            ISender sender) =>
+        {
+            await sender.Send(new DeleteBlockedDateCommand(id));
+            return Results.Ok("Blocked dates deleted successfully.");
+        })
+        .WithName("DeleteBlockedDate");
     }
 }   

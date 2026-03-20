@@ -20,29 +20,31 @@ public sealed class PropertyRepository : IPropertyRepository
             .Include(p => p.Address)
             .Include(p => p.Reservations)
             .Include(p => p.Amenities)
+            .Include(p => p.BlockedDates)
             .FirstOrDefaultAsync(p => p.Id == propertyId, ct);
     }
 
     public async Task<(List<Property> Items, int TotalCount)> SearchPropertiesAsync(
-        string? city,
-        int? maxGuests,
-        int? propertyType,
-        DateTime? startDate,
-        DateTime? endDate,
-        decimal? minPrice,
-        decimal? maxPrice,
-        List<int>? amenityIds,
-        double? minRating,
-        string? sortBy,
-        string? sortDirection,
-        int page,
-        int pageSize,
-        CancellationToken ct = default)
+    string? city,
+    int? maxGuests,
+    int? propertyType,
+    DateTime? startDate,
+    DateTime? endDate,
+    decimal? minPrice,
+    decimal? maxPrice,
+    List<int>? amenityIds,
+    double? minRating,
+    string? sortBy,
+    string? sortDirection,
+    int page,
+    int pageSize,
+    CancellationToken ct = default)
     {
         var query = _dbContext.Properties
             .Include(p => p.Address)
             .Include(p => p.Reservations)
             .Include(p => p.Amenities)
+            .Include(p => p.BlockedDates)
             .AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(city))
@@ -97,6 +99,11 @@ public sealed class PropertyRepository : IPropertyRepository
                 numberOfNights >= p.MinStayNights &&
                 numberOfNights <= p.MaxStayNights);
 
+            query = query.Where(p => !p.BlockedDates.Any(b =>
+                start < b.EndDate.Date &&
+                end > b.StartDate.Date
+            ));
+
             query = query.Where(p => !p.Reservations.Any(r =>
                 (r.BookingStatus == ReservationStatus.Pending ||
                  r.BookingStatus == ReservationStatus.Confirmed) &&
@@ -146,7 +153,6 @@ public sealed class PropertyRepository : IPropertyRepository
 
         return (items, totalCount);
     }
-
     public async Task<Property?> GetPropertyForReservationAsync(Guid propertyId, CancellationToken ct = default)
     {
         return await _dbContext.Properties
