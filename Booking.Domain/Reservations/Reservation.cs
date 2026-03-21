@@ -18,6 +18,7 @@ public class Reservation
     public DateTime EndDate { get; set; }
 
     public int GuestCount { get; set; }
+    public bool ReminderSent { get; set; }
 
     public decimal CleaningFee { get; set; }
     public decimal AdditionalGuestFee { get; set; }

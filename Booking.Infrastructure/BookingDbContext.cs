@@ -1,4 +1,5 @@
 using Booking.Domain.Addresses;
+using Booking.Domain.Notifications;
 using Booking.Domain.OwnerProfiles;
 using Booking.Domain.Properties;
 using Booking.Domain.PropertyAmenities;
@@ -33,6 +34,8 @@ namespace Booking.Infrastructure
         public DbSet<PropertyBlockedDate> PropertyBlockedDates => Set<PropertyBlockedDate>();
         public DbSet<PropertySeasonalPrice> PropertySeasonalPrices => Set<PropertySeasonalPrice>();
         public DbSet<PropertyDiscount> PropertyDiscounts => Set<PropertyDiscount>();
+        public DbSet<Notification> Notifications => Set<Notification>();
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -278,6 +281,24 @@ namespace Booking.Infrastructure
 
             modelBuilder.Entity<PropertyDiscount>()
                 .HasIndex(pd => pd.PropertyId);
+
+            //NOTIFICATIONS
+            modelBuilder.Entity<Notification>()
+                .HasOne(n => n.User)
+                .WithMany(u => u.Notifications)
+                .HasForeignKey(n => n.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Notification>()
+                .Property(n => n.Title)
+                .HasMaxLength(200);
+
+            modelBuilder.Entity<Notification>()
+                .Property(n => n.Message)
+                .HasMaxLength(1000);
+
+            modelBuilder.Entity<Notification>()
+                .HasIndex(n => n.UserId);
         }
 
     }

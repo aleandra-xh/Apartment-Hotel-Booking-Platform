@@ -1,6 +1,8 @@
-﻿using Booking.Application.Abstractions.Security;
+﻿using Booking.Application.Abstractions.Notifications;
+using Booking.Application.Abstractions.Security;
 using Booking.Application.Common.Exceptions;
 using Booking.Application.Generics.Interfaces;
+using Booking.Domain.Notifications;
 using Booking.Domain.Properties;
 using Booking.Domain.Reservations;
 using MediatR;
@@ -12,15 +14,18 @@ public sealed class HostCancelReservationCommandHandler : IRequestHandler<HostCa
     private readonly IGenericRepository<Reservation> _reservationRepository;
     private readonly IGenericRepository<Property> _propertyRepository;
     private readonly ICurrentUserService _currentUserService;
+    private readonly INotificationService _notificationService;
 
     public HostCancelReservationCommandHandler(
         IGenericRepository<Reservation> reservationRepository,
         IGenericRepository<Property> propertyRepository,
-        ICurrentUserService currentUserService)
+        ICurrentUserService currentUserService,
+        INotificationService notificationService)
     {
         _reservationRepository = reservationRepository;
         _propertyRepository = propertyRepository;
         _currentUserService = currentUserService;
+        _notificationService = notificationService;
     }
 
     public async Task<Unit> Handle(HostCancelReservationCommand request, CancellationToken ct)
@@ -81,10 +86,19 @@ public sealed class HostCancelReservationCommandHandler : IRequestHandler<HostCa
         }
 
         reservation.BookingStatus = ReservationStatus.Cancelled;
+        reservation.RefundAmount = refundAmount;
+        reservation.PenaltyAmount = penaltyAmount;
         reservation.CancelledOnUtc = DateTime.UtcNow;
         reservation.LastModifiedAt = DateTime.UtcNow;
 
         await _reservationRepository.SaveChangesAsync(ct);
+
+        await _notificationService.CreateAsync(
+            reservation.GuestId,
+            "Booking cancelled",
+            $"Your reservation for property '{property.Name}' has been cancelled by the host.",
+            NotificationType.BookingCancelled,
+            ct);
 
         return Unit.Value;
     }

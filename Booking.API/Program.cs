@@ -33,5 +33,7 @@ app.MapPropertyEndpoints();
 app.MapReservationEndpoints();
 app.MapReviewEndpoints();
 app.MapPropertyImageEndpoints();
+app.MapNotificationEndpoints();
+
 
 app.Run();

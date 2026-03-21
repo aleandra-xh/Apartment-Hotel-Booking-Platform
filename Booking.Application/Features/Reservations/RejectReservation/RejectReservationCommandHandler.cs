@@ -1,8 +1,10 @@
 ﻿
+using Booking.Application.Abstractions.Notifications;
 using Booking.Application.Abstractions.Properties;
 using Booking.Application.Abstractions.Security;
 using Booking.Application.Common.Exceptions;
 using Booking.Application.Generics.Interfaces;
+using Booking.Domain.Notifications;
 using Booking.Domain.Reservations;
 using MediatR;
 
@@ -13,15 +15,18 @@ public sealed class RejectReservationCommandHandler : IRequestHandler<RejectRese
     private readonly IGenericRepository<Reservation> _reservationRepository;
     private readonly IPropertyRepository _propertyRepository;
     private readonly ICurrentUserService _currentUserService;
+    private readonly INotificationService _notificationService;
 
     public RejectReservationCommandHandler(
         IGenericRepository<Reservation> reservationRepository,
         IPropertyRepository propertyRepository,
-        ICurrentUserService currentUserService)
+        ICurrentUserService currentUserService,
+        INotificationService notificationService)
     {
         _reservationRepository = reservationRepository;
         _propertyRepository = propertyRepository;
         _currentUserService = currentUserService;
+        _notificationService = notificationService;
     }
 
     public async Task<Unit> Handle(RejectReservationCommand request, CancellationToken ct)
@@ -56,6 +61,13 @@ public sealed class RejectReservationCommandHandler : IRequestHandler<RejectRese
         reservation.LastModifiedAt = DateTime.UtcNow;
 
         await _reservationRepository.SaveChangesAsync(ct);
+
+        await _notificationService.CreateAsync(
+            reservation.GuestId,
+            "Booking rejected",
+            $"Your reservation for property '{property.Name}' has been rejected.",
+            NotificationType.BookingRejected,
+            ct);
 
         return Unit.Value;
     }

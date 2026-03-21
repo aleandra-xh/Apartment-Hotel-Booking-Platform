@@ -1,7 +1,10 @@
 ﻿
+using Booking.Application.Abstractions.Notifications;
+using Booking.Application.Abstractions.Properties;
 using Booking.Application.Abstractions.Security;
 using Booking.Application.Common.Exceptions;
 using Booking.Application.Generics.Interfaces;
+using Booking.Domain.Notifications;
 using Booking.Domain.Reservations;
 using MediatR;
 
@@ -10,14 +13,20 @@ namespace Booking.Application.Features.Reservations.CancelReservation;
 public sealed class CancelReservationCommandHandler : IRequestHandler<CancelReservationCommand, Unit>
 {
     private readonly IGenericRepository<Reservation> _reservationRepository;
+    private readonly IPropertyRepository _propertyRepository;
     private readonly ICurrentUserService _currentUserService;
+    private readonly INotificationService _notificationService;
 
     public CancelReservationCommandHandler(
         IGenericRepository<Reservation> reservationRepository,
-        ICurrentUserService currentUserService)
+        IPropertyRepository propertyRepository,
+        ICurrentUserService currentUserService,
+        INotificationService notificationService)
     {
         _reservationRepository = reservationRepository;
+        _propertyRepository = propertyRepository;
         _currentUserService = currentUserService;
+        _notificationService = notificationService;
     }
 
     public async Task<Unit> Handle(CancelReservationCommand request, CancellationToken ct)
@@ -43,6 +52,13 @@ public sealed class CancelReservationCommandHandler : IRequestHandler<CancelRese
         if (reservation.StartDate.Date <= DateTime.UtcNow.Date)
             throw new ConflictException("Reservation cannot be cancelled on or after the start date.");
 
+        var property = await _propertyRepository.GetPropertyForReservationAsync(
+            reservation.PropertyId,
+            ct);
+
+        if (property is null)
+            throw new NotFoundException("Property not found.");
+
         var daysBeforeStart = (reservation.StartDate.Date - DateTime.UtcNow.Date).Days;
 
         decimal refundAmount;
@@ -63,10 +79,6 @@ public sealed class CancelReservationCommandHandler : IRequestHandler<CancelRese
             refundAmount = 0;
             penaltyAmount = reservation.TotalPrice;
         }
-        Console.WriteLine($"Days before start: {daysBeforeStart}");
-        Console.WriteLine($"TotalPrice: {reservation.TotalPrice}");
-        Console.WriteLine($"RefundAmount calculated: {refundAmount}");
-        Console.WriteLine($"PenaltyAmount calculated: {penaltyAmount}");
 
         reservation.BookingStatus = ReservationStatus.Cancelled;
         reservation.RefundAmount = refundAmount;
@@ -74,11 +86,14 @@ public sealed class CancelReservationCommandHandler : IRequestHandler<CancelRese
         reservation.CancelledOnUtc = DateTime.UtcNow;
         reservation.LastModifiedAt = DateTime.UtcNow;
 
-        reservation.BookingStatus = ReservationStatus.Cancelled;
-        reservation.CancelledOnUtc = DateTime.UtcNow;
-        reservation.LastModifiedAt = DateTime.UtcNow;
-
         await _reservationRepository.SaveChangesAsync(ct);
+
+        await _notificationService.CreateAsync(
+            property.OwnerId,
+            "Booking cancelled",
+            $"A reservation for your property '{property.Name}' has been cancelled by the guest.",
+            NotificationType.BookingCancelled,
+            ct);
 
         return Unit.Value;
     }

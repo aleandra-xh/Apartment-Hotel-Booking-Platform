@@ -3,6 +3,8 @@ using Booking.Application.Abstractions.Properties;
 using Booking.Application.Abstractions.Security;
 using Booking.Application.Common.Exceptions;
 using Booking.Application.Generics.Interfaces;
+using Booking.Application.Abstractions.Notifications;
+using Booking.Domain.Notifications;
 using Booking.Domain.Reservations;
 using MediatR;
 
@@ -13,15 +15,18 @@ public sealed class ConfirmReservationCommandHandler : IRequestHandler<ConfirmRe
     private readonly IGenericRepository<Reservation> _reservationRepository;
     private readonly IPropertyRepository _propertyRepository;
     private readonly ICurrentUserService _currentUserService;
+    private readonly INotificationService _notificationService;
 
     public ConfirmReservationCommandHandler(
         IGenericRepository<Reservation> reservationRepository,
         IPropertyRepository propertyRepository,
-        ICurrentUserService currentUserService)
+        ICurrentUserService currentUserService,
+        INotificationService notificationService)
     {
         _reservationRepository = reservationRepository;
         _propertyRepository = propertyRepository;
         _currentUserService = currentUserService;
+        _notificationService = notificationService;
     }
 
     public async Task<Unit> Handle(ConfirmReservationCommand request, CancellationToken ct)
@@ -53,6 +58,13 @@ public sealed class ConfirmReservationCommandHandler : IRequestHandler<ConfirmRe
         reservation.LastModifiedAt = DateTime.UtcNow;
 
         await _reservationRepository.SaveChangesAsync(ct);
+
+        await _notificationService.CreateAsync(
+            reservation.GuestId,
+            "Booking confirmed",
+            $"Your reservation for property '{property.Name}' has been confirmed.",
+            NotificationType.BookingConfirmed,
+            ct);
 
         return Unit.Value;
     }

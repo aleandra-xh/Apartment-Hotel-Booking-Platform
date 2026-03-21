@@ -1,9 +1,10 @@
-﻿using Booking.Domain.OwnerProfiles;
+﻿using Booking.Domain.Notifications;
+using Booking.Domain.OwnerProfiles;
+using Booking.Domain.Properties;
+using Booking.Domain.Reservations;
 using Booking.Domain.Reviews;
 using Booking.Domain.UserRoles;
-using Booking.Domain.Reservations;
 using System.ComponentModel.DataAnnotations;
-using Booking.Domain.Properties;
 
 namespace Booking.Domain.Users;
 
@@ -29,6 +30,7 @@ public class User
     public List<Reservation> Reservations { get; set; } = new();
     public List<Review> Reviews { get; set; } = new();
     public List<Property> Properties { get; set; } = new();
+    public List<Notification> Notifications { get; set; } = new();
 
     public User(Guid id, string firstName, string lastName, string email, string passwordHash, string phoneNumber)
     {

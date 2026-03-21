@@ -1,26 +1,32 @@
 ﻿
+using Booking.Application.Abstractions.Notifications;
 using Booking.Application.Abstractions.Properties;
 using Booking.Application.Abstractions.Security;
 using Booking.Application.Common.Exceptions;
 using Booking.Application.Generics.Interfaces;
+using Booking.Domain.Notifications;
 using Booking.Domain.Reservations;
 using MediatR;
 
 namespace Booking.Application.Features.Reservations.CompleteReservation;
+
 public sealed class CompleteReservationCommandHandler : IRequestHandler<CompleteReservationCommand, Unit>
 {
     private readonly IGenericRepository<Reservation> _reservationRepository;
     private readonly IPropertyRepository _propertyRepository;
     private readonly ICurrentUserService _currentUserService;
+    private readonly INotificationService _notificationService;
 
     public CompleteReservationCommandHandler(
         IGenericRepository<Reservation> reservationRepository,
         IPropertyRepository propertyRepository,
-        ICurrentUserService currentUserService)
+        ICurrentUserService currentUserService,
+        INotificationService notificationService)
     {
         _reservationRepository = reservationRepository;
         _propertyRepository = propertyRepository;
         _currentUserService = currentUserService;
+        _notificationService = notificationService;
     }
 
     public async Task<Unit> Handle(CompleteReservationCommand request, CancellationToken ct)
@@ -58,6 +64,13 @@ public sealed class CompleteReservationCommandHandler : IRequestHandler<Complete
         reservation.LastModifiedAt = DateTime.UtcNow;
 
         await _reservationRepository.SaveChangesAsync(ct);
+
+        await _notificationService.CreateAsync(
+            reservation.GuestId,
+            "Booking completed",
+            $"Your stay for property '{property.Name}' has been completed. You can now leave a review.",
+            NotificationType.BookingCompleted,
+            ct);
 
         return Unit.Value;
     }

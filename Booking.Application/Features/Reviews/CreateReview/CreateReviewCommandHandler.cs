@@ -1,10 +1,11 @@
-﻿
+﻿using Booking.Application.Abstractions.Notifications;
 using Booking.Application.Abstractions.Security;
 using Booking.Application.Common.Exceptions;
 using Booking.Application.Generics.Interfaces;
+using Booking.Domain.Notifications;
+using Booking.Domain.Properties;
 using Booking.Domain.Reservations;
 using Booking.Domain.Reviews;
-
 using MediatR;
 
 namespace Booking.Application.Features.Reviews.CreateReview;
@@ -13,16 +14,22 @@ public sealed class CreateReviewCommandHandler : IRequestHandler<CreateReviewCom
 {
     private readonly IGenericRepository<Review> _reviewRepository;
     private readonly IGenericRepository<Reservation> _reservationRepository;
+    private readonly IGenericRepository<Property> _propertyRepository;
     private readonly ICurrentUserService _currentUserService;
+    private readonly INotificationService _notificationService;
 
     public CreateReviewCommandHandler(
         IGenericRepository<Review> reviewRepository,
         IGenericRepository<Reservation> reservationRepository,
-        ICurrentUserService currentUserService)
+        IGenericRepository<Property> propertyRepository,
+        ICurrentUserService currentUserService,
+        INotificationService notificationService)
     {
         _reviewRepository = reviewRepository;
         _reservationRepository = reservationRepository;
+        _propertyRepository = propertyRepository;
         _currentUserService = currentUserService;
+        _notificationService = notificationService;
     }
 
     public async Task<Guid> Handle(CreateReviewCommand request, CancellationToken ct)
@@ -49,6 +56,13 @@ public sealed class CreateReviewCommandHandler : IRequestHandler<CreateReviewCom
         if (existingReview)
             throw new ConflictException("A review already exists for this reservation.");
 
+        var property = await _propertyRepository.FirstOrDefaultAsync(
+            p => p.Id == reservation.PropertyId,
+            ct);
+
+        if (property is null)
+            throw new NotFoundException("Property not found.");
+
         var review = new Review
         {
             Id = Guid.NewGuid(),
@@ -61,6 +75,13 @@ public sealed class CreateReviewCommandHandler : IRequestHandler<CreateReviewCom
 
         await _reviewRepository.AddAsync(review, ct);
         await _reviewRepository.SaveChangesAsync(ct);
+
+        await _notificationService.CreateAsync(
+            property.OwnerId,
+            "New review received",
+            $"Your property '{property.Name}' received a new review.",
+            NotificationType.NewReview,
+            ct);
 
         return review.Id;
     }

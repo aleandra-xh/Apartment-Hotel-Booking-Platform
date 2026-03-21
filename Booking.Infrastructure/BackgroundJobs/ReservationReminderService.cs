@@ -8,11 +8,11 @@ using Microsoft.Extensions.Hosting;
 
 namespace Booking.Infrastructure.BackgroundJobs;
 
-public sealed class ReservationCompletionService : BackgroundService
+public sealed class ReservationReminderService : BackgroundService
 {
     private readonly IServiceScopeFactory _scopeFactory;
 
-    public ReservationCompletionService(IServiceScopeFactory scopeFactory)
+    public ReservationReminderService(IServiceScopeFactory scopeFactory)
     {
         _scopeFactory = scopeFactory;
     }
@@ -25,33 +25,33 @@ public sealed class ReservationCompletionService : BackgroundService
             var dbContext = scope.ServiceProvider.GetRequiredService<BookingDbContext>();
             var notificationService = scope.ServiceProvider.GetRequiredService<INotificationService>();
 
-            var today = DateTime.UtcNow.Date;
+            var tomorrow = DateTime.UtcNow.Date.AddDays(1);
 
-            var reservationsToComplete = await dbContext.Reservations
+            var reservationsToRemind = await dbContext.Reservations
                 .Include(r => r.Property)
                 .Where(r =>
                     r.BookingStatus == ReservationStatus.Confirmed &&
-                    r.EndDate.Date < today)
+                    r.StartDate.Date == tomorrow &&
+                    !r.ReminderSent)
                 .ToListAsync(stoppingToken);
 
-            foreach (var reservation in reservationsToComplete)
+            foreach (var reservation in reservationsToRemind)
             {
-                reservation.BookingStatus = ReservationStatus.Completed;
-                reservation.CompletedOnUtc = DateTime.UtcNow;
+                reservation.ReminderSent = true;
                 reservation.LastModifiedAt = DateTime.UtcNow;
             }
 
-            if (reservationsToComplete.Count > 0)
+            if (reservationsToRemind.Count > 0)
             {
                 await dbContext.SaveChangesAsync(stoppingToken);
 
-                foreach (var reservation in reservationsToComplete)
+                foreach (var reservation in reservationsToRemind)
                 {
                     await notificationService.CreateAsync(
                         reservation.GuestId,
-                        "Booking completed",
-                        $"Your stay for property '{reservation.Property.Name}' has been completed. You can now leave a review.",
-                        NotificationType.BookingCompleted,
+                        "Booking reminder",
+                        $"Reminder: your stay at '{reservation.Property.Name}' starts tomorrow.",
+                        NotificationType.BookingReminder,
                         stoppingToken);
                 }
             }

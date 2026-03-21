@@ -1,5 +1,6 @@
 ﻿using Booking.Application.Abstractions.Addresses;
 using Booking.Application.Abstractions.LogIn;
+using Booking.Application.Abstractions.Notifications;
 using Booking.Application.Abstractions.Properties;
 using Booking.Application.Abstractions.PropertyBlockedDates;
 using Booking.Application.Abstractions.PropertyDiscounts;
@@ -12,6 +13,7 @@ using Booking.Application.Generics.Interfaces;
 using Booking.Infrastructure.BackgroundJobs;
 using Booking.Infrastructure.Contracts.AuthService;
 using Booking.Infrastructure.Contracts.Security;
+using Booking.Infrastructure.Notifications;
 using Booking.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Configuration;
@@ -39,9 +41,11 @@ public static class InfrastructureServiceRegistration
         services.AddScoped<IPropertyBlockedDateRepository, PropertyBlockedDateRepository>();
         services.AddScoped<IPropertySeasonalPriceRepository, PropertySeasonalPriceRepository>();
         services.AddScoped<IPropertyDiscountRepository, PropertyDiscountRepository>();
+        services.AddScoped<INotificationService, NotificationService>();
 
         services.AddHostedService<ReservationCompletionService>();
         services.AddHostedService<ReservationExpirationService>();
+        services.AddHostedService<ReservationReminderService>();
         services.ConfigureJWT(configuration);
 
         return services;
