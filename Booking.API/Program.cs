@@ -34,6 +34,8 @@ app.MapReservationEndpoints();
 app.MapReviewEndpoints();
 app.MapPropertyImageEndpoints();
 app.MapNotificationEndpoints();
+app.MapAdminEndpoints();
+
 
 
 app.Run();
