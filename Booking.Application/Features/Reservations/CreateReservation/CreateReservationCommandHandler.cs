@@ -1,11 +1,13 @@
 ﻿using Booking.Application.Abstractions.Properties;
+using Booking.Application.Abstractions.PropertyBlockedDates;
+using Booking.Application.Abstractions.PropertyDiscounts;
+using Booking.Application.Abstractions.PropertySeasonalPrices;
 using Booking.Application.Abstractions.Reservations;
+using Booking.Application.Abstractions.Security;
 using Booking.Application.Common.Exceptions;
 using Booking.Application.Generics.Interfaces;
 using Booking.Domain.Reservations;
-using Booking.Application.Abstractions.PropertyBlockedDates;
 using MediatR;
-using Booking.Application.Abstractions.Security;
 
 namespace Booking.Application.Features.Reservations.CreateReservation;
 
@@ -16,12 +18,16 @@ public sealed class CreateReservationCommandHandler : IRequestHandler<CreateRese
     private readonly IGenericRepository<Reservation> _genericReservationRepository;
     private readonly ICurrentUserService _currentUserService;
     private readonly IPropertyBlockedDateRepository _blockedDateRepository;
+    private readonly IPropertySeasonalPriceRepository _seasonalPriceRepository;
+    private readonly IPropertyDiscountRepository _discountRepository;
 
     public CreateReservationCommandHandler(
         IPropertyRepository propertyRepository,
         IReservationRepository reservationRepository,
         IGenericRepository<Reservation> genericReservationRepository,
         IPropertyBlockedDateRepository blockedDateRepository,
+        IPropertySeasonalPriceRepository seasonalPriceRepository,
+        IPropertyDiscountRepository discountRepository,
         ICurrentUserService currentUserService)
     {
         _propertyRepository = propertyRepository;
@@ -29,6 +35,8 @@ public sealed class CreateReservationCommandHandler : IRequestHandler<CreateRese
         _genericReservationRepository = genericReservationRepository;
         _currentUserService = currentUserService;
         _blockedDateRepository = blockedDateRepository;
+        _seasonalPriceRepository = seasonalPriceRepository;
+        _discountRepository = discountRepository;
     }
 
     public async Task<Guid> Handle(CreateReservationCommand request, CancellationToken ct)
@@ -80,7 +88,21 @@ public sealed class CreateReservationCommandHandler : IRequestHandler<CreateRese
         if (hasOverlap)
             throw new ConflictException("Property is not available for the selected dates.");
 
-        decimal priceForPeriod = property.PricePerNight * numberOfNights;
+        var baseOrSeasonalPricePerNight = await _seasonalPriceRepository.GetApplicablePricePerNightAsync(
+            property.Id,
+            request.Request.StartDate,
+            request.Request.EndDate,
+            ct) ?? property.PricePerNight;
+
+        var discountPercentage = await _discountRepository.GetApplicableDiscountPercentageAsync(
+            property.Id,
+            request.Request.StartDate,
+            request.Request.EndDate,
+            ct) ?? 0m;
+
+        var discountedPricePerNight = baseOrSeasonalPricePerNight * (1 - (discountPercentage / 100m));
+
+        decimal priceForPeriod = discountedPricePerNight * numberOfNights;
 
         int extraGuests = Math.Max(0, request.Request.GuestCount - property.BaseGuestCount);
 

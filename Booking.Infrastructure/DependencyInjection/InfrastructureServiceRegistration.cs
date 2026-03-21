@@ -2,7 +2,9 @@
 using Booking.Application.Abstractions.LogIn;
 using Booking.Application.Abstractions.Properties;
 using Booking.Application.Abstractions.PropertyBlockedDates;
+using Booking.Application.Abstractions.PropertyDiscounts;
 using Booking.Application.Abstractions.PropertyImages;
+using Booking.Application.Abstractions.PropertySeasonalPrices;
 using Booking.Application.Abstractions.Reservations;
 using Booking.Application.Abstractions.Security;
 using Booking.Application.Abstractions.UserRegister;
@@ -35,6 +37,8 @@ public static class InfrastructureServiceRegistration
         services.AddScoped<IPropertyImageRepository, PropertyImageRepository>();
         services.AddScoped<IAddressRepository, AddressRepository>();
         services.AddScoped<IPropertyBlockedDateRepository, PropertyBlockedDateRepository>();
+        services.AddScoped<IPropertySeasonalPriceRepository, PropertySeasonalPriceRepository>();
+        services.AddScoped<IPropertyDiscountRepository, PropertyDiscountRepository>();
 
         services.AddHostedService<ReservationCompletionService>();
         services.AddHostedService<ReservationExpirationService>();

@@ -2,7 +2,9 @@
 using Booking.Domain.Addresses;
 using Booking.Domain.PropertyAmenities;
 using Booking.Domain.PropertyBlockedDates;
+using Booking.Domain.PropertyDiscounts;
 using Booking.Domain.PropertyImages;
+using Booking.Domain.PropertySeasonalPrices;
 using Booking.Domain.Reservations;
 using Booking.Domain.Users;
 
@@ -50,5 +52,7 @@ public class Property
     public List<PropertyAmenity> Amenities { get; set; } = new();
     public List<PropertyImage> Images { get; set; } = new();
     public List<PropertyBlockedDate> BlockedDates { get; set; } = new();
+    public List<PropertySeasonalPrice> SeasonalPrices { get; set; } = new();
+    public List<PropertyDiscount> Discounts { get; set; } = new();
 
 }

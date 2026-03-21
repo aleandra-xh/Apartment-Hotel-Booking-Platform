@@ -5,8 +5,14 @@ using Booking.Application.Features.Properties.GetPropertyById;
 using Booking.Application.Features.Properties.SearchProperties;
 using Booking.Application.Features.Properties.UpdateProperty;
 using Booking.Application.Features.PropertyBlockedDates.BlockPropertyDates;
-using Booking.Application.Features.PropertyBlockedDates.GetPropertyBlockedDates;
 using Booking.Application.Features.PropertyBlockedDates.DeleteBlockedDate;
+using Booking.Application.Features.PropertyBlockedDates.GetPropertyBlockedDates;
+using Booking.Application.Features.PropertyDiscounts.AddPropertyDiscount;
+using Booking.Application.Features.PropertyDiscounts.DeletePropertyDiscount;
+using Booking.Application.Features.PropertyDiscounts.GetPropertyDiscounts;
+using Booking.Application.Features.PropertySeasonalPrices.AddSeasonalPrice;
+using Booking.Application.Features.PropertySeasonalPrices.DeleteSeasonalPrice;
+using Booking.Application.Features.PropertySeasonalPrices.GetPropertySeasonalPrices;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 
@@ -85,7 +91,7 @@ public static class PropertyEndpoint
 
         //---Get Property Blocked Dates---
 
-        app.MapGet("/v1/properties/{propertyId:guid}/blocked-dates", [Authorize(Roles = "Owner")] async (
+        app.MapGet("/v1/properties/{propertyId:guid}/get/blocked-dates", [Authorize(Roles = "Owner")] async (
             Guid propertyId,
             ISender sender) =>
         {
@@ -97,7 +103,7 @@ public static class PropertyEndpoint
 
         //---Delete Blocked Date---
 
-        app.MapDelete("/v1/properties/blocked-dates/{id:guid}", [Authorize(Roles = "Owner")] async (
+        app.MapDelete("/v1/properties/delete/blocked-dates/{id:guid}", [Authorize(Roles = "Owner")] async (
             Guid id,
             ISender sender) =>
         {
@@ -105,5 +111,70 @@ public static class PropertyEndpoint
             return Results.Ok("Blocked dates deleted successfully.");
         })
         .WithName("DeleteBlockedDate");
+
+        //---Add Seasonal Price---
+        app.MapPost("/v1/properties/add/seasonal-prices", [Authorize(Roles = "Owner")] async (
+            AddSeasonalPriceCommand command,
+            ISender sender) =>
+        {
+            var seasonalPriceId = await sender.Send(command);
+            return Results.Created($"/v1/properties/seasonal-prices/{seasonalPriceId}", null);
+        })
+            .WithName("AddSeasonalPrice");
+
+        //---Get Property Seasonal Prices---
+
+        app.MapGet("/v1/properties/{propertyId:guid}/get/seasonal-prices", [Authorize(Roles = "Owner")] async (
+            Guid propertyId,
+            ISender sender) =>
+        {
+            var result = await sender.Send(new GetPropertySeasonalPricesQuery(propertyId));
+            return Results.Ok(result);
+        })
+        .WithName("GetPropertySeasonalPrices");
+
+
+        //---Delete Seasonal Price---
+        app.MapDelete("/v1/properties/delete/seasonal-prices/{id:guid}", [Authorize(Roles = "Owner")] async (
+            Guid id,
+            ISender sender) =>
+        {
+            await sender.Send(new DeleteSeasonalPriceCommand(id));
+            return Results.Ok("Seasonal price deleted successfully.");
+        })
+        .WithName("DeleteSeasonalPrice");
+
+
+        //---Add Property Discount---
+        app.MapPost("/v1/properties/discounts", [Authorize(Roles = "Owner")] async (
+            AddPropertyDiscountCommand command,
+            ISender sender) =>
+        {
+            var discountId = await sender.Send(command);
+            return Results.Created($"/v1/properties/discounts/{discountId}", null);
+        })
+        .WithName("AddPropertyDiscount");
+
+
+        //---Get Property Discounts---
+        app.MapGet("/v1/properties/get/{propertyId:guid}/discounts", [Authorize(Roles = "Owner")] async (
+            Guid propertyId,
+            ISender sender) =>
+        {
+            var result = await sender.Send(new GetPropertyDiscountsQuery(propertyId));
+            return Results.Ok(result);
+        })
+        .WithName("GetPropertyDiscounts");
+
+
+        //---Delete Property Discount---
+        app.MapDelete("/v1/properties/delete/discounts/{id:guid}", [Authorize(Roles = "Owner")] async (
+            Guid id,
+            ISender sender) =>
+        {
+            await sender.Send(new DeletePropertyDiscountCommand(id));
+            return Results.Ok("Property discount deleted successfully.");
+        })
+        .WithName("DeletePropertyDiscount");
     }
 }   

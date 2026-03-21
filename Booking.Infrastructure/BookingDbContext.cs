@@ -3,7 +3,9 @@ using Booking.Domain.OwnerProfiles;
 using Booking.Domain.Properties;
 using Booking.Domain.PropertyAmenities;
 using Booking.Domain.PropertyBlockedDates;
+using Booking.Domain.PropertyDiscounts;
 using Booking.Domain.PropertyImages;
+using Booking.Domain.PropertySeasonalPrices;
 using Booking.Domain.Reservations;
 using Booking.Domain.Reviews;
 using Booking.Domain.Roles;
@@ -29,7 +31,8 @@ namespace Booking.Infrastructure
 
         public DbSet<PropertyAmenity> PropertyAmenities { get; set; } = null!;
         public DbSet<PropertyBlockedDate> PropertyBlockedDates => Set<PropertyBlockedDate>();
-
+        public DbSet<PropertySeasonalPrice> PropertySeasonalPrices => Set<PropertySeasonalPrice>();
+        public DbSet<PropertyDiscount> PropertyDiscounts => Set<PropertyDiscount>();
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -222,6 +225,14 @@ namespace Booking.Infrastructure
             modelBuilder.Entity<Property>()
                 .Property(p => p.AdditionalGuestFeePerNight)
                 .HasPrecision(18, 2);
+            
+            modelBuilder.Entity<PropertySeasonalPrice>()
+                .Property(psp => psp.PricePerNight)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<PropertyDiscount>()
+                .Property(pd => pd.Percentage)
+                .HasPrecision(5, 2);
 
             // REVIEW → BOOKING 
             modelBuilder.Entity<Review>()
@@ -237,7 +248,7 @@ namespace Booking.Infrastructure
                 .HasForeignKey(r => r.GuestId)
                 .OnDelete(DeleteBehavior.NoAction);
 
-            //PROPERTYBLOCKEDDATES → PROPERTY
+            //PROPERTY BLOCKED DATES → PROPERTY
             modelBuilder.Entity<PropertyBlockedDate>()
                 .HasOne(pbd => pbd.Property)
                 .WithMany(p => p.BlockedDates)
@@ -246,6 +257,27 @@ namespace Booking.Infrastructure
 
             modelBuilder.Entity<PropertyBlockedDate>()
                 .HasIndex(pbd => pbd.PropertyId);
+
+            //PROPERTY SEASONAL PRICE
+            modelBuilder.Entity<PropertySeasonalPrice>()
+                .HasOne(psp => psp.Property)
+                .WithMany(p => p.SeasonalPrices)
+                .HasForeignKey(psp => psp.PropertyId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<PropertySeasonalPrice>()
+                .HasIndex(psp => psp.PropertyId);
+
+
+            //PROPERTY DISCOUNT
+            modelBuilder.Entity<PropertyDiscount>()
+                .HasOne(pd => pd.Property)
+                .WithMany(p => p.Discounts)
+                .HasForeignKey(pd => pd.PropertyId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<PropertyDiscount>()
+                .HasIndex(pd => pd.PropertyId);
         }
 
     }

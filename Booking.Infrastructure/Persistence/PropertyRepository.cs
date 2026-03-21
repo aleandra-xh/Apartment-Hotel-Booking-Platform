@@ -1,4 +1,5 @@
-﻿using Booking.Application.Abstractions.Properties;
+﻿
+using Booking.Application.Abstractions.Properties;
 using Booking.Domain.Properties;
 using Booking.Domain.Reservations;
 using Microsoft.EntityFrameworkCore;
@@ -21,30 +22,34 @@ public sealed class PropertyRepository : IPropertyRepository
             .Include(p => p.Reservations)
             .Include(p => p.Amenities)
             .Include(p => p.BlockedDates)
+            .Include(p => p.SeasonalPrices)
+            .Include(p => p.Discounts)
             .FirstOrDefaultAsync(p => p.Id == propertyId, ct);
     }
 
     public async Task<(List<Property> Items, int TotalCount)> SearchPropertiesAsync(
-    string? city,
-    int? maxGuests,
-    int? propertyType,
-    DateTime? startDate,
-    DateTime? endDate,
-    decimal? minPrice,
-    decimal? maxPrice,
-    List<int>? amenityIds,
-    double? minRating,
-    string? sortBy,
-    string? sortDirection,
-    int page,
-    int pageSize,
-    CancellationToken ct = default)
+        string? city,
+        int? maxGuests,
+        int? propertyType,
+        DateTime? startDate,
+        DateTime? endDate,
+        decimal? minPrice,
+        decimal? maxPrice,
+        List<int>? amenityIds,
+        double? minRating,
+        string? sortBy,
+        string? sortDirection,
+        int page,
+        int pageSize,
+        CancellationToken ct = default)
     {
         var query = _dbContext.Properties
             .Include(p => p.Address)
             .Include(p => p.Reservations)
             .Include(p => p.Amenities)
             .Include(p => p.BlockedDates)
+            .Include(p => p.SeasonalPrices)
+            .Include(p => p.Discounts)
             .AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(city))
@@ -61,16 +66,6 @@ public sealed class PropertyRepository : IPropertyRepository
         if (propertyType.HasValue)
         {
             query = query.Where(p => (int)p.PropertyType == propertyType.Value);
-        }
-
-        if (minPrice.HasValue)
-        {
-            query = query.Where(p => p.PricePerNight >= minPrice.Value);
-        }
-
-        if (maxPrice.HasValue)
-        {
-            query = query.Where(p => p.PricePerNight <= maxPrice.Value);
         }
 
         if (amenityIds is { Count: > 0 })
@@ -112,6 +107,53 @@ public sealed class PropertyRepository : IPropertyRepository
             ));
         }
 
+        if (minPrice.HasValue || maxPrice.HasValue)
+        {
+            if (startDate.HasValue && endDate.HasValue)
+            {
+                var start = startDate.Value.Date;
+                var end = endDate.Value.Date;
+
+                query = query.Where(p =>
+                    (!minPrice.HasValue ||
+                     (((p.SeasonalPrices
+                            .Where(sp => start >= sp.StartDate.Date && end <= sp.EndDate.Date)
+                            .Select(sp => (decimal?)sp.PricePerNight)
+                            .FirstOrDefault() ?? p.PricePerNight)
+                       *
+                       (1 - ((p.Discounts
+                            .Where(d => start >= d.StartDate.Date && end <= d.EndDate.Date)
+                            .Select(d => (decimal?)d.Percentage)
+                            .FirstOrDefault() ?? 0m) / 100m)))
+                      >= minPrice.Value))
+                    &&
+                    (!maxPrice.HasValue ||
+                     (((p.SeasonalPrices
+                            .Where(sp => start >= sp.StartDate.Date && end <= sp.EndDate.Date)
+                            .Select(sp => (decimal?)sp.PricePerNight)
+                            .FirstOrDefault() ?? p.PricePerNight)
+                       *
+                       (1 - ((p.Discounts
+                            .Where(d => start >= d.StartDate.Date && end <= d.EndDate.Date)
+                            .Select(d => (decimal?)d.Percentage)
+                            .FirstOrDefault() ?? 0m) / 100m)))
+                      <= maxPrice.Value))
+                );
+            }
+            else
+            {
+                if (minPrice.HasValue)
+                {
+                    query = query.Where(p => p.PricePerNight >= minPrice.Value);
+                }
+
+                if (maxPrice.HasValue)
+                {
+                    query = query.Where(p => p.PricePerNight <= maxPrice.Value);
+                }
+            }
+        }
+
         query = query.Where(p => p.IsActive && p.IsApproved);
 
         var totalCount = await query.CountAsync(ct);
@@ -123,9 +165,39 @@ public sealed class PropertyRepository : IPropertyRepository
 
         if (sortByNormalized == "price")
         {
-            orderedQuery = sortDirectionNormalized == "desc"
-                ? query.OrderByDescending(p => p.PricePerNight)
-                : query.OrderBy(p => p.PricePerNight);
+            if (startDate.HasValue && endDate.HasValue)
+            {
+                var start = startDate.Value.Date;
+                var end = endDate.Value.Date;
+
+                orderedQuery = sortDirectionNormalized == "desc"
+                    ? query.OrderByDescending(p =>
+                        (p.SeasonalPrices
+                            .Where(sp => start >= sp.StartDate.Date && end <= sp.EndDate.Date)
+                            .Select(sp => (decimal?)sp.PricePerNight)
+                            .FirstOrDefault() ?? p.PricePerNight)
+                        *
+                        (1 - ((p.Discounts
+                            .Where(d => start >= d.StartDate.Date && end <= d.EndDate.Date)
+                            .Select(d => (decimal?)d.Percentage)
+                            .FirstOrDefault() ?? 0m) / 100m)))
+                    : query.OrderBy(p =>
+                        (p.SeasonalPrices
+                            .Where(sp => start >= sp.StartDate.Date && end <= sp.EndDate.Date)
+                            .Select(sp => (decimal?)sp.PricePerNight)
+                            .FirstOrDefault() ?? p.PricePerNight)
+                        *
+                        (1 - ((p.Discounts
+                            .Where(d => start >= d.StartDate.Date && end <= d.EndDate.Date)
+                            .Select(d => (decimal?)d.Percentage)
+                            .FirstOrDefault() ?? 0m) / 100m)));
+            }
+            else
+            {
+                orderedQuery = sortDirectionNormalized == "desc"
+                    ? query.OrderByDescending(p => p.PricePerNight)
+                    : query.OrderBy(p => p.PricePerNight);
+            }
         }
         else if (sortByNormalized == "rating")
         {
@@ -153,6 +225,7 @@ public sealed class PropertyRepository : IPropertyRepository
 
         return (items, totalCount);
     }
+
     public async Task<Property?> GetPropertyForReservationAsync(Guid propertyId, CancellationToken ct = default)
     {
         return await _dbContext.Properties
