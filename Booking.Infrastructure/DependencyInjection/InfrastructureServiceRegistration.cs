@@ -42,12 +42,13 @@ public static class InfrastructureServiceRegistration
         services.AddScoped<IPropertySeasonalPriceRepository, PropertySeasonalPriceRepository>();
         services.AddScoped<IPropertyDiscountRepository, PropertyDiscountRepository>();
         services.AddScoped<INotificationService, NotificationService>();
+        services.AddScoped<IEmailService, SendGridEmailService>();
 
         services.AddHostedService<ReservationCompletionService>();
         services.AddHostedService<ReservationExpirationService>();
         services.AddHostedService<ReservationReminderService>();
         services.ConfigureJWT(configuration);
-
+        services.Configure<SendGridSettings>(configuration.GetSection("SendGrid"));
         return services;
     }
 

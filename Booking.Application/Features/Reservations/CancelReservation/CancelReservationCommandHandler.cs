@@ -1,11 +1,11 @@
-﻿
-using Booking.Application.Abstractions.Notifications;
+﻿using Booking.Application.Abstractions.Notifications;
 using Booking.Application.Abstractions.Properties;
 using Booking.Application.Abstractions.Security;
 using Booking.Application.Common.Exceptions;
 using Booking.Application.Generics.Interfaces;
 using Booking.Domain.Notifications;
 using Booking.Domain.Reservations;
+using Booking.Domain.Users;
 using MediatR;
 
 namespace Booking.Application.Features.Reservations.CancelReservation;
@@ -16,17 +16,23 @@ public sealed class CancelReservationCommandHandler : IRequestHandler<CancelRese
     private readonly IPropertyRepository _propertyRepository;
     private readonly ICurrentUserService _currentUserService;
     private readonly INotificationService _notificationService;
+    private readonly IGenericRepository<User> _userRepository;
+    private readonly IEmailService _emailService;
 
     public CancelReservationCommandHandler(
         IGenericRepository<Reservation> reservationRepository,
         IPropertyRepository propertyRepository,
         ICurrentUserService currentUserService,
-        INotificationService notificationService)
+        INotificationService notificationService,
+        IGenericRepository<User> userRepository,
+        IEmailService emailService)
     {
         _reservationRepository = reservationRepository;
         _propertyRepository = propertyRepository;
         _currentUserService = currentUserService;
         _notificationService = notificationService;
+        _userRepository = userRepository;
+        _emailService = emailService;
     }
 
     public async Task<Unit> Handle(CancelReservationCommand request, CancellationToken ct)
@@ -94,6 +100,21 @@ public sealed class CancelReservationCommandHandler : IRequestHandler<CancelRese
             $"A reservation for your property '{property.Name}' has been cancelled by the guest.",
             NotificationType.BookingCancelled,
             ct);
+
+        var owner = await _userRepository.FirstOrDefaultAsync(
+            u => u.Id == property.OwnerId,
+            ct);
+
+        if (owner is not null && !string.IsNullOrWhiteSpace(owner.Email))
+        {
+            await _emailService.SendAsync(
+                new EmailMessage(
+                    owner.Email,
+                    "Booking cancelled",
+                    $"A reservation for your property '{property.Name}' has been cancelled by the guest."
+                ),
+                ct);
+        }
 
         return Unit.Value;
     }

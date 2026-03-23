@@ -6,6 +6,7 @@ using Booking.Application.Common.Exceptions;
 using Booking.Application.Generics.Interfaces;
 using Booking.Domain.Notifications;
 using Booking.Domain.Reservations;
+using Booking.Domain.Users;
 using MediatR;
 
 namespace Booking.Application.Features.Reservations.RejectReservation;
@@ -16,17 +17,23 @@ public sealed class RejectReservationCommandHandler : IRequestHandler<RejectRese
     private readonly IPropertyRepository _propertyRepository;
     private readonly ICurrentUserService _currentUserService;
     private readonly INotificationService _notificationService;
+    private readonly IGenericRepository<User> _userRepository;
+    private readonly IEmailService _emailService;
 
     public RejectReservationCommandHandler(
         IGenericRepository<Reservation> reservationRepository,
         IPropertyRepository propertyRepository,
         ICurrentUserService currentUserService,
-        INotificationService notificationService)
+        INotificationService notificationService,
+        IGenericRepository<User> userRepository,
+        IEmailService emailService)
     {
         _reservationRepository = reservationRepository;
         _propertyRepository = propertyRepository;
         _currentUserService = currentUserService;
         _notificationService = notificationService;
+        _userRepository = userRepository;
+        _emailService = emailService;
     }
 
     public async Task<Unit> Handle(RejectReservationCommand request, CancellationToken ct)
@@ -68,6 +75,21 @@ public sealed class RejectReservationCommandHandler : IRequestHandler<RejectRese
             $"Your reservation for property '{property.Name}' has been rejected.",
             NotificationType.BookingRejected,
             ct);
+
+        var guest = await _userRepository.FirstOrDefaultAsync(
+            u => u.Id == reservation.GuestId,
+            ct);
+
+        if (guest is not null && !string.IsNullOrWhiteSpace(guest.Email))
+        {
+            await _emailService.SendAsync(
+                new EmailMessage(
+                    guest.Email,
+                    "Booking rejected",
+                    $"Your reservation for property '{property.Name}' has been rejected."
+                ),
+                ct);
+        }
 
         return Unit.Value;
     }

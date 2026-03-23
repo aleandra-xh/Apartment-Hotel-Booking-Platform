@@ -2,6 +2,7 @@
 using Booking.Application.Abstractions.Notifications;
 using Booking.Domain.Notifications;
 using Booking.Domain.Reservations;
+using Booking.Domain.Users;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -24,6 +25,7 @@ public sealed class ReservationCompletionService : BackgroundService
             using var scope = _scopeFactory.CreateScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<BookingDbContext>();
             var notificationService = scope.ServiceProvider.GetRequiredService<INotificationService>();
+            var emailService = scope.ServiceProvider.GetRequiredService<IEmailService>();
 
             var today = DateTime.UtcNow.Date;
 
@@ -53,6 +55,20 @@ public sealed class ReservationCompletionService : BackgroundService
                         $"Your stay for property '{reservation.Property.Name}' has been completed. You can now leave a review.",
                         NotificationType.BookingCompleted,
                         stoppingToken);
+
+                    var guest = await dbContext.Set<User>()
+                        .FirstOrDefaultAsync(u => u.Id == reservation.GuestId, stoppingToken);
+
+                    if (guest is not null && !string.IsNullOrWhiteSpace(guest.Email))
+                    {
+                        await emailService.SendAsync(
+                            new EmailMessage(
+                                guest.Email,
+                                "Booking completed",
+                                $"Your stay for property '{reservation.Property.Name}' has been completed. You can now leave a review."
+                            ),
+                            stoppingToken);
+                    }
                 }
             }
 

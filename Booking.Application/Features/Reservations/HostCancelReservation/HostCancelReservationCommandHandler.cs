@@ -5,6 +5,7 @@ using Booking.Application.Generics.Interfaces;
 using Booking.Domain.Notifications;
 using Booking.Domain.Properties;
 using Booking.Domain.Reservations;
+using Booking.Domain.Users;
 using MediatR;
 
 namespace Booking.Application.Features.Reservations.HostCancelReservation;
@@ -15,17 +16,23 @@ public sealed class HostCancelReservationCommandHandler : IRequestHandler<HostCa
     private readonly IGenericRepository<Property> _propertyRepository;
     private readonly ICurrentUserService _currentUserService;
     private readonly INotificationService _notificationService;
+    private readonly IGenericRepository<User> _userRepository;
+    private readonly IEmailService _emailService;
 
     public HostCancelReservationCommandHandler(
         IGenericRepository<Reservation> reservationRepository,
         IGenericRepository<Property> propertyRepository,
         ICurrentUserService currentUserService,
-        INotificationService notificationService)
+        INotificationService notificationService,
+        IGenericRepository<User> userRepository,
+        IEmailService emailService)
     {
         _reservationRepository = reservationRepository;
         _propertyRepository = propertyRepository;
         _currentUserService = currentUserService;
         _notificationService = notificationService;
+        _userRepository = userRepository;
+        _emailService = emailService;
     }
 
     public async Task<Unit> Handle(HostCancelReservationCommand request, CancellationToken ct)
@@ -99,6 +106,21 @@ public sealed class HostCancelReservationCommandHandler : IRequestHandler<HostCa
             $"Your reservation for property '{property.Name}' has been cancelled by the host.",
             NotificationType.BookingCancelled,
             ct);
+
+        var guest = await _userRepository.FirstOrDefaultAsync(
+            u => u.Id == reservation.GuestId,
+            ct);
+
+        if (guest is not null && !string.IsNullOrWhiteSpace(guest.Email))
+        {
+            await _emailService.SendAsync(
+                new EmailMessage(
+                    guest.Email,
+                    "Booking cancelled",
+                    $"Your reservation for property '{property.Name}' has been cancelled by the host."
+                ),
+                ct);
+        }
 
         return Unit.Value;
     }

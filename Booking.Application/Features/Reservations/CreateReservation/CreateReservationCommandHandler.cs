@@ -1,4 +1,5 @@
-﻿using Booking.Application.Abstractions.Properties;
+﻿using Booking.Application.Abstractions.Notifications;
+using Booking.Application.Abstractions.Properties;
 using Booking.Application.Abstractions.PropertyBlockedDates;
 using Booking.Application.Abstractions.PropertyDiscounts;
 using Booking.Application.Abstractions.PropertySeasonalPrices;
@@ -7,6 +8,7 @@ using Booking.Application.Abstractions.Security;
 using Booking.Application.Common.Exceptions;
 using Booking.Application.Generics.Interfaces;
 using Booking.Domain.Reservations;
+using Booking.Domain.Users;
 using MediatR;
 
 namespace Booking.Application.Features.Reservations.CreateReservation;
@@ -20,6 +22,8 @@ public sealed class CreateReservationCommandHandler : IRequestHandler<CreateRese
     private readonly IPropertyBlockedDateRepository _blockedDateRepository;
     private readonly IPropertySeasonalPriceRepository _seasonalPriceRepository;
     private readonly IPropertyDiscountRepository _discountRepository;
+    private readonly IGenericRepository<User> _userRepository;
+    private readonly IEmailService _emailService;
 
     public CreateReservationCommandHandler(
         IPropertyRepository propertyRepository,
@@ -28,6 +32,8 @@ public sealed class CreateReservationCommandHandler : IRequestHandler<CreateRese
         IPropertyBlockedDateRepository blockedDateRepository,
         IPropertySeasonalPriceRepository seasonalPriceRepository,
         IPropertyDiscountRepository discountRepository,
+        IGenericRepository<User> userRepository,
+        IEmailService emailService,
         ICurrentUserService currentUserService)
     {
         _propertyRepository = propertyRepository;
@@ -37,6 +43,9 @@ public sealed class CreateReservationCommandHandler : IRequestHandler<CreateRese
         _blockedDateRepository = blockedDateRepository;
         _seasonalPriceRepository = seasonalPriceRepository;
         _discountRepository = discountRepository;
+        _userRepository = userRepository;
+        _emailService = emailService;
+
     }
 
     public async Task<Guid> Handle(CreateReservationCommand request, CancellationToken ct)
@@ -142,6 +151,20 @@ public sealed class CreateReservationCommandHandler : IRequestHandler<CreateRese
 
         await _genericReservationRepository.AddAsync(reservation, ct);
         await _genericReservationRepository.SaveChangesAsync(ct);
+
+        var guest = await _userRepository.FirstOrDefaultAsync(
+            u => u.Id == reservation.GuestId,ct);
+
+        if (guest is not null && !string.IsNullOrWhiteSpace(guest.Email))
+        {
+            await _emailService.SendAsync(
+                new EmailMessage(
+                    guest.Email,
+                    "Booking request created",
+                    $"Your booking request for property '{property.Name}' has been created and is pending confirmation."
+                ),
+                ct);
+        }
 
         return reservation.Id;
     }

@@ -2,6 +2,7 @@
 using Booking.Application.Abstractions.Notifications;
 using Booking.Domain.Notifications;
 using Booking.Domain.Reservations;
+using Booking.Domain.Users;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -24,6 +25,7 @@ public sealed class ReservationExpirationService : BackgroundService
             using var scope = _scopeFactory.CreateScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<BookingDbContext>();
             var notificationService = scope.ServiceProvider.GetRequiredService<INotificationService>();
+            var emailService = scope.ServiceProvider.GetRequiredService<IEmailService>();
 
             var expirationThreshold = DateTime.UtcNow.AddHours(-24);
 
@@ -52,6 +54,20 @@ public sealed class ReservationExpirationService : BackgroundService
                         $"Your booking request for property '{reservation.Property.Name}' has expired.",
                         NotificationType.BookingExpired,
                         stoppingToken);
+
+                    var guest = await dbContext.Set<User>()
+                        .FirstOrDefaultAsync(u => u.Id == reservation.GuestId, stoppingToken);
+
+                    if (guest is not null && !string.IsNullOrWhiteSpace(guest.Email))
+                    {
+                        await emailService.SendAsync(
+                            new EmailMessage(
+                                guest.Email,
+                                "Booking expired",
+                                $"Your booking request for property '{reservation.Property.Name}' has expired."
+                            ),
+                            stoppingToken);
+                    }
                 }
             }
 
