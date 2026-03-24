@@ -5,5 +5,6 @@ public sealed record GetMyNotificationsResult(
     List<GetMyNotificationsResponse> Items,
     int TotalCount,
     int Page,
-    int PageSize
+    int PageSize,
+    int TotalPages
 );
