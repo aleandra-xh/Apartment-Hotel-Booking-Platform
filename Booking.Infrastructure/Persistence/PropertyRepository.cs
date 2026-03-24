@@ -21,6 +21,7 @@ public sealed class PropertyRepository : IPropertyRepository
             .Include(p => p.Address)
             .Include(p => p.Reservations)
             .Include(p => p.Amenities)
+            .Include(p => p.Images)
             .Include(p => p.BlockedDates)
             .Include(p => p.SeasonalPrices)
             .Include(p => p.Discounts)

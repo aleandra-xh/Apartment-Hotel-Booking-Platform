@@ -17,11 +17,8 @@ public sealed class SearchPropertiesQueryHandler
 
     public async Task<SearchPropertiesResponse> Handle(SearchPropertiesQuery request, CancellationToken ct)
     {
-        Console.WriteLine($"Handler City: {request.Request.City}");
-        Console.WriteLine($"Handler MaxGuests: {request.Request.MaxGuests}");
-        Console.WriteLine($"Handler PropertyType: {request.Request.PropertyType}");
-        Console.WriteLine($"Handler StartDate: {request.Request.StartDate}");
-        Console.WriteLine($"Handler EndDate: {request.Request.EndDate}");
+        var page = request.Request.Page < 1 ? 1 : request.Request.Page;
+        var pageSize = request.Request.PageSize < 1 ? 10 : request.Request.PageSize;
 
         var result = await _propertyRepository.SearchPropertiesAsync(
             request.Request.City,
@@ -35,8 +32,8 @@ public sealed class SearchPropertiesQueryHandler
             request.Request.MinRating,
             request.Request.SortBy,
             request.Request.SortDirection,
-            request.Request.Page,
-            request.Request.PageSize,
+            page,
+            pageSize,
             ct);
 
         var items = result.Items
@@ -54,9 +51,10 @@ public sealed class SearchPropertiesQueryHandler
 
         return new SearchPropertiesResponse(
             items,
-            request.Request.Page,
-            request.Request.PageSize,
-            result.TotalCount
+            page,
+            pageSize,
+            result.TotalCount,
+            (int)Math.Ceiling(result.TotalCount / (double)pageSize)
         );
     }
 }

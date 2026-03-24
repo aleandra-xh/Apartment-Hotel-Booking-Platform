@@ -1,5 +1,4 @@
 ﻿
-
 namespace Booking.Application.Features.Properties.GetPropertyById;
 
 public sealed record GetPropertyAddressResponse(

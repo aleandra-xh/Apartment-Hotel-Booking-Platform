@@ -1,4 +1,5 @@
-﻿namespace Booking.Application.Features.Properties.SearchProperties;
+﻿
+namespace Booking.Application.Features.Properties.SearchProperties;
 
 public sealed record SearchPropertyItemResponse(
     Guid Id,
