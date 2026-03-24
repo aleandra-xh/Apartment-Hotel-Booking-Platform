@@ -2,6 +2,7 @@
 using Booking.Application.Features.Users.BecomeOwner;
 using Booking.Application.Features.Users.ChangePassword;
 using Booking.Application.Features.Users.DeleteUserProfileImage;
+using Booking.Application.Features.Users.GetMyProfile;
 using Booking.Application.Features.Users.GetUserProfileImage;
 using Booking.Application.Features.Users.RegisterUser;
 using Booking.Application.Features.Users.UpdateUserProfile;
@@ -102,6 +103,14 @@ public static class UserEndpoint
             return Results.Ok("Password changed successfully.");
         })
         .WithName("ChangePassword");
+
+        //---Get My Profile---
+        app.MapGet("/v1/users/me", [Authorize] async (ISender sender) =>
+        {
+            var result = await sender.Send(new GetMyProfileQuery());
+            return Results.Ok(result);
+        })
+        .WithName("GetMyProfile");
     }
 
 }

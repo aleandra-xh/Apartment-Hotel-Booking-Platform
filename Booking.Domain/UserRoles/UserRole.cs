@@ -1,6 +1,5 @@
 ﻿using Booking.Domain.Roles;
 using Booking.Domain.Users;
-using System;
 
 namespace Booking.Domain.UserRoles
 {

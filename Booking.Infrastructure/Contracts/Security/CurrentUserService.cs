@@ -27,10 +27,10 @@ public sealed class CurrentUserService : ICurrentUserService
                     .Value;
 
             if (string.IsNullOrWhiteSpace(userId))
-                throw new UnauthorizedAccessException("User is not authenticated.");
+                return Guid.Empty;
 
             if (!Guid.TryParse(userId, out var guid))
-                throw new UnauthorizedAccessException("Invalid user identifier in token.");
+                return Guid.Empty;
 
             return guid;
         }

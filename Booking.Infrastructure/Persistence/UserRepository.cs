@@ -14,11 +14,28 @@ public sealed class UserRepository : GenericRepository<User>, IUserRepository
     }
 
     public async Task<bool> IsEmailUnique(string email, CancellationToken ct)
-        => !await _context.Users.AnyAsync(u => u.Email == email, ct);
+    {
+        var normalizedEmail = email.Trim().ToLower();
+
+        return !await _context.Users
+            .AnyAsync(u => u.Email.ToLower() == normalizedEmail, ct);
+    }
 
     public Task<User?> GetByEmailWithRolesAsync(string email, CancellationToken ct)
-        => _context.Users
+    {
+        var normalizedEmail = email.Trim().ToLower();
+
+        return _context.Users
             .Include(u => u.UserRoles)
                 .ThenInclude(ur => ur.Role)
-            .FirstOrDefaultAsync(u => u.Email == email, ct);
+            .FirstOrDefaultAsync(u => u.Email.Trim().ToLower() == normalizedEmail, ct);
+    }
+
+    public Task<User?> GetByIdWithRolesAsync(Guid userId, CancellationToken ct)
+    {
+        return _context.Users
+            .Include(u => u.UserRoles)
+                .ThenInclude(ur => ur.Role)
+            .FirstOrDefaultAsync(u => u.Id == userId, ct);
+    }
 }
