@@ -1,3 +1,4 @@
+
 using Booking.Application.Abstractions.Security;
 using Booking.Application.Common.Exceptions;
 using Booking.Application.Generics.Interfaces;
@@ -12,18 +13,15 @@ public sealed class BecomeOwnerCommandHandler : IRequestHandler<BecomeOwnerComma
 {
     private readonly ICurrentUserService _currentUserService;
     private readonly IGenericRepository<UserRole> _userRoleRepository;
-    private readonly IGenericRepository<Role> _roleRepository;
     private readonly IGenericRepository<OwnerProfile> _ownerProfileRepository;
 
     public BecomeOwnerCommandHandler(
         ICurrentUserService currentUserService,
         IGenericRepository<UserRole> userRoleRepository,
-        IGenericRepository<Role> roleRepository,
         IGenericRepository<OwnerProfile> ownerProfileRepository)
     {
         _currentUserService = currentUserService;
         _userRoleRepository = userRoleRepository;
-        _roleRepository = roleRepository;
         _ownerProfileRepository = ownerProfileRepository;
     }
 
@@ -31,41 +29,47 @@ public sealed class BecomeOwnerCommandHandler : IRequestHandler<BecomeOwnerComma
     {
         var userId = _currentUserService.UserId;
 
-        var ownerRole = await _roleRepository.FirstOrDefaultAsync(
-            r => r.Name == RoleType.Owner,
-            ct);
-
-        if (ownerRole is null)
-            throw new NotFoundException("Owner role not found.");
-
         var alreadyOwner = await _userRoleRepository.AnyAsync(
-            ur => ur.UserId == userId && ur.RoleId == ownerRole.Id,
+            ur => ur.UserId == userId && ur.Role.Name == RoleType.Owner,
             ct);
 
         if (alreadyOwner)
             throw new ConflictException("User is already an owner.");
 
-        var ownerProfile = new OwnerProfile
+        var existingOwnerProfile = await _ownerProfileRepository.FirstOrDefaultAsync(
+            op => op.UserId == userId,
+            ct);
+
+        if (existingOwnerProfile is null)
         {
-            UserId = userId,
-            IdentityCardNumber = request.Request.IdentityCardNumber,
-            CreditCard = request.Request.CreditCard,
-            BusinessName = request.Request.BusinessName,
-            VerificationStatus = VerificationStatus.Pending,
-            CreatedAt = DateTime.UtcNow
-        };
+            var ownerProfile = new OwnerProfile
+            {
+                UserId = userId,
+                IdentityCardNumber = request.Request.IdentityCardNumber,
+                CreditCard = request.Request.CreditCard,
+                BusinessName = request.Request.BusinessName,
+                VerificationStatus = VerificationStatus.Pending,
+                CreatedAt = DateTime.UtcNow
+            };
 
-        await _ownerProfileRepository.AddAsync(ownerProfile, ct);
-
-        var userRole = new UserRole
+            await _ownerProfileRepository.AddAsync(ownerProfile, ct);
+        }
+        else
         {
-            UserId = userId,
-            RoleId = ownerRole.Id,
-            AssignedAt = DateTime.UtcNow
-        };
+            if (existingOwnerProfile.VerificationStatus == VerificationStatus.Pending)
+                throw new ConflictException("You already have a pending owner request.");
 
-        await _userRoleRepository.AddAsync(userRole, ct);
-        await _userRoleRepository.SaveChangesAsync(ct);
+            if (existingOwnerProfile.VerificationStatus == VerificationStatus.Approved)
+                throw new ConflictException("Your owner request has already been approved.");
+
+            existingOwnerProfile.IdentityCardNumber = request.Request.IdentityCardNumber;
+            existingOwnerProfile.CreditCard = request.Request.CreditCard;
+            existingOwnerProfile.BusinessName = request.Request.BusinessName;
+            existingOwnerProfile.VerificationStatus = VerificationStatus.Pending;
+            existingOwnerProfile.LastModifiedAt = DateTime.UtcNow;
+        }
+
+        await _ownerProfileRepository.SaveChangesAsync(ct);
 
         return Unit.Value;
     }

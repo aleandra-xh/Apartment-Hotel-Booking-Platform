@@ -7,28 +7,28 @@ using Booking.Domain.Properties;
 using Booking.Domain.Users;
 using MediatR;
 
-namespace Booking.Application.Features.Properties.ApproveProperty;
+namespace Booking.Application.Features.Properties.SuspendProperty;
 
-public sealed class ApprovePropertyCommandHandler : IRequestHandler<ApprovePropertyCommand, Unit>
+public sealed class SuspendPropertyCommandHandler : IRequestHandler<SuspendPropertyCommand, Unit>
 {
     private readonly IGenericRepository<Property> _propertyRepository;
-    private readonly INotificationService _notificationService;
     private readonly IGenericRepository<User> _userRepository;
+    private readonly INotificationService _notificationService;
     private readonly IEmailService _emailService;
 
-    public ApprovePropertyCommandHandler(
+    public SuspendPropertyCommandHandler(
         IGenericRepository<Property> propertyRepository,
-        INotificationService notificationService,
         IGenericRepository<User> userRepository,
+        INotificationService notificationService,
         IEmailService emailService)
     {
         _propertyRepository = propertyRepository;
-        _notificationService = notificationService;
         _userRepository = userRepository;
+        _notificationService = notificationService;
         _emailService = emailService;
     }
 
-    public async Task<Unit> Handle(ApprovePropertyCommand request, CancellationToken ct)
+    public async Task<Unit> Handle(SuspendPropertyCommand request, CancellationToken ct)
     {
         var property = await _propertyRepository.FirstOrDefaultAsync(
             p => p.Id == request.PropertyId,
@@ -38,21 +38,18 @@ public sealed class ApprovePropertyCommandHandler : IRequestHandler<ApprovePrope
             throw new NotFoundException("Property not found.");
 
         if (!property.IsActive)
-            throw new ConflictException("Inactive property cannot be approved.");
+            throw new ConflictException("Property is already suspended.");
 
-        if (property.IsApproved)
-            throw new ConflictException("Property is already approved.");
-
-        property.IsApproved = true;
+        property.IsActive = false;
         property.LastModifiedAt = DateTime.UtcNow;
 
         await _propertyRepository.SaveChangesAsync(ct);
 
         await _notificationService.CreateAsync(
             property.OwnerId,
-            "Property approved",
-            $"Your property '{property.Name}' has been approved.",
-            NotificationType.PropertyApproved,
+            "Property suspended",
+            $"Your property '{property.Name}' has been suspended by an administrator.",
+            NotificationType.PropertySuspended,
             ct);
 
         var owner = await _userRepository.FirstOrDefaultAsync(
@@ -64,8 +61,8 @@ public sealed class ApprovePropertyCommandHandler : IRequestHandler<ApprovePrope
             await _emailService.SendAsync(
                 new EmailMessage(
                     owner.Email,
-                    "Property approved",
-                    $"Your property '{property.Name}' has been approved."
+                    "Property suspended",
+                    $"Your property '{property.Name}' has been suspended by an administrator."
                 ),
                 ct);
         }

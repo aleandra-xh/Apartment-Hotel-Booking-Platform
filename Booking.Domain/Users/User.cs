@@ -12,7 +12,7 @@ public class User
 {
     [Key]
     public Guid Id { get; set; }
-    
+
     public string FirstName { get; set; } = null!;
     public string LastName { get; set; } = null!;
     public string Email { get; set; } = null!;
@@ -23,10 +23,11 @@ public class User
     public bool IsActive { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime? LastModifiedAt { get; set; }
+    public bool IsDeleted { get; set; }
+    public DateTime? DeletedAt { get; set; }
 
-    // Navigation Properties
     public List<UserRole> UserRoles { get; set; } = new();
-    public OwnerProfile? OwnerProfile { get; set; } 
+    public OwnerProfile? OwnerProfile { get; set; }
     public List<Reservation> Reservations { get; set; } = new();
     public List<Review> Reviews { get; set; } = new();
     public List<Property> Properties { get; set; } = new();
@@ -37,22 +38,21 @@ public class User
         Id = id;
         FirstName = firstName;
         LastName = lastName;
-        Email = email;
+        Email = email.Trim().ToLower();
         Password = passwordHash;
         PhoneNumber = phoneNumber;
         CreatedAt = DateTime.UtcNow;
         IsActive = true;
-        
     }
-    private User() { }
 
+    private User() { }
     public static User CreateUser(CreateUserDto dto, string passwordHash)
         => new(
-            Guid.NewGuid(), 
-            dto.FirstName, 
-            dto.LastName, 
-            dto.Email, 
-            passwordHash, 
+            Guid.NewGuid(),
+            dto.FirstName,
+            dto.LastName,
+            dto.Email.Trim().ToLower(),
+            passwordHash,
             dto.PhoneNumber);
 
     public void UpdatePassword(string passwordHash)
@@ -60,5 +60,4 @@ public class User
         Password = passwordHash;
         LastModifiedAt = DateTime.UtcNow;
     }
-
 }

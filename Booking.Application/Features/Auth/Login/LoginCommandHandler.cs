@@ -24,13 +24,19 @@ public sealed class LoginCommandHandler : IRequestHandler<LoginCommand, LoginRes
 
     public async Task<LoginResponse> Handle(LoginCommand request, CancellationToken ct)
     {
-        var email = request.Request.Email;
+        var email = request.Request.Email.Trim().ToLower();
         var password = request.Request.Password;
 
         var user = await _userRepository.GetByEmailWithRolesAsync(email, ct);
 
         if (user is null)
             throw new UnauthorizedException("Invalid credentials");
+
+        if (user.IsDeleted)
+            throw new UnauthorizedException("This account has been deleted.");
+
+        if (!user.IsActive)
+            throw new UnauthorizedException("Your account has been suspended.");
 
         if (!_passwordHasher.Verify(password, user.Password))
             throw new UnauthorizedException("Invalid credentials");

@@ -3,13 +3,18 @@ namespace Booking.Domain.Notifications;
 
 public enum NotificationType
 {
-    BookingConfirmed = 1,
+    BookingCreated=1,
+    BookingConfirmed,
+    BookingRejected,
     BookingCancelled,
     BookingReminder,
+    BookingCompleted,
+    BookingExpired,
     NewReview,
     PropertyApproved,
     PropertyRejected,
-    BookingRejected,
-    BookingCompleted,
-    BookingExpired
+    PropertySuspended,
+    OwnerRequestApproved,
+    OwnerRequestRejected,
+    AccountSuspended
 }

@@ -36,7 +36,7 @@ public static class UserEndpoint
         app.MapPost("/v1/users/become-owner", [Authorize] async (BecomeOwnerCommand command, ISender sender) =>
         {
             await sender.Send(command);
-            return Results.Ok("User is now an owner.");
+            return Results.Ok("Owner request submitted successfully. Your verification is pending admin approval.");
         })
         .WithName("BecomeOwner");
 

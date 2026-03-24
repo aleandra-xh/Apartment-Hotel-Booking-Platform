@@ -6,6 +6,7 @@ using Booking.Application.Abstractions.PropertyBlockedDates;
 using Booking.Application.Abstractions.PropertyDiscounts;
 using Booking.Application.Abstractions.PropertyImages;
 using Booking.Application.Abstractions.PropertySeasonalPrices;
+using Booking.Application.Abstractions.Queries;
 using Booking.Application.Abstractions.Reservations;
 using Booking.Application.Abstractions.Security;
 using Booking.Application.Abstractions.UserRegister;
@@ -15,6 +16,7 @@ using Booking.Infrastructure.Contracts.AuthService;
 using Booking.Infrastructure.Contracts.Security;
 using Booking.Infrastructure.Notifications;
 using Booking.Infrastructure.Persistence;
+using Booking.Infrastructure.Queries;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -43,6 +45,7 @@ public static class InfrastructureServiceRegistration
         services.AddScoped<IPropertyDiscountRepository, PropertyDiscountRepository>();
         services.AddScoped<INotificationService, NotificationService>();
         services.AddScoped<IEmailService, SendGridEmailService>();
+        services.AddScoped<IAdminQueryService, AdminQueryService>();
 
         services.AddHostedService<ReservationCompletionService>();
         services.AddHostedService<ReservationExpirationService>();
