@@ -10,6 +10,7 @@ using Booking.Application.Features.Reservations.RejectReservation;
 using Booking.Domain.Reservations;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
+using System.Reflection;
 
 namespace Booking.API.Endpoints;
 
@@ -28,24 +29,28 @@ public static class ReservationEndpoint
         .WithName("CreateReservation");
 
 
-        //---Get My Reservations---
+       //---Get My Reservations---
         app.MapGet("/v1/reservations/my", [Authorize] async (
             ReservationStatus? status,
             bool? isPast,
-            ISender sender) =>
+            ISender sender,
+            int page = 1,
+            int pageSize = 10) =>
         {
-            var result = await sender.Send(new GetMyReservationsQuery(status, isPast));
+            var result = await sender.Send(new GetMyReservationsQuery(status, isPast, page, pageSize));
             return Results.Ok(result);
         })
         .WithName("GetMyReservations");
 
-        //---Get Owner Reservation--- 
+        //---Get Owner Reservations--- 
         app.MapGet("/v1/reservations/owner", [Authorize(Roles = "Owner")] async (
             ReservationStatus? status,
             bool? isPast,
-            ISender sender) =>
+            ISender sender,
+            int page = 1,
+            int pageSize = 10) =>
         {
-            var result = await sender.Send(new GetOwnerReservationsQuery(status, isPast));
+            var result = await sender.Send(new GetOwnerReservationsQuery(status, isPast, page, pageSize));
             return Results.Ok(result);
         })
         .WithName("GetOwnerReservations");

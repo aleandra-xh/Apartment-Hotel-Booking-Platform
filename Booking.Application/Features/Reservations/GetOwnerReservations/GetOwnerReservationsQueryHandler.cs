@@ -1,91 +1,35 @@
-﻿
+﻿using Booking.Application.Abstractions.Queries;
 using Booking.Application.Abstractions.Security;
-using Booking.Application.Generics.Interfaces;
-using Booking.Domain.Properties;
-using Booking.Domain.Reservations;
 using MediatR;
 
 namespace Booking.Application.Features.Reservations.GetOwnerReservations;
+
 public sealed class GetOwnerReservationsQueryHandler
-    : IRequestHandler<GetOwnerReservationsQuery, List<GetOwnerReservationsResponse>>
+    : IRequestHandler<GetOwnerReservationsQuery, GetOwnerReservationsResult>
 {
-    private readonly IGenericRepository<Reservation> _reservationRepository;
-    private readonly IGenericRepository<Property> _propertyRepository;
+    private readonly IReservationQueryService _reservationQueryService;
     private readonly ICurrentUserService _currentUserService;
 
     public GetOwnerReservationsQueryHandler(
-        IGenericRepository<Reservation> reservationRepository,
-        IGenericRepository<Property> propertyRepository,
+        IReservationQueryService reservationQueryService,
         ICurrentUserService currentUserService)
     {
-        _reservationRepository = reservationRepository;
-        _propertyRepository = propertyRepository;
+        _reservationQueryService = reservationQueryService;
         _currentUserService = currentUserService;
     }
 
-    public async Task<List<GetOwnerReservationsResponse>> Handle(GetOwnerReservationsQuery request, CancellationToken ct)
+    public async Task<GetOwnerReservationsResult> Handle(GetOwnerReservationsQuery request, CancellationToken ct)
     {
         var ownerId = _currentUserService.UserId;
+        var page = request.Page < 1 ? 1 : request.Page;
+        var pageSize = request.PageSize < 1 ? 10 : request.PageSize;
 
-        var ownerProperties = await _propertyRepository.GetAllAsync(
-            p => p.OwnerId == ownerId,
+        return await _reservationQueryService.GetOwnerReservationsAsync(
+            ownerId,
+            request.Status,
+            request.IsPast,
+            page,
+            pageSize,
             ct);
-
-        var ownerPropertyIds = ownerProperties
-            .Select(p => p.Id)
-            .ToList();
-
-        var reservations = await _reservationRepository.GetAllAsync(
-            r => ownerPropertyIds.Contains(r.PropertyId),
-            ct);
-
-        if (request.Status.HasValue)
-        {
-            reservations = reservations
-                .Where(r => r.BookingStatus == request.Status.Value)
-                .ToList();
-        }
-
-
-        if (request.Status.HasValue)
-        {
-            reservations = reservations
-                .Where(r => r.BookingStatus == request.Status.Value)
-                .ToList();
-        }
-        else
-        {
-            if (request.IsPast.HasValue)
-            {
-                reservations = request.IsPast.Value
-                    ? reservations.Where(r => r.BookingStatus == ReservationStatus.Completed).ToList()
-                    : reservations.Where(r =>
-                        r.BookingStatus == ReservationStatus.Pending ||
-                        r.BookingStatus == ReservationStatus.Confirmed).ToList();
-            }
-            else
-            {
-                reservations = reservations.Where(r =>
-                    r.BookingStatus == ReservationStatus.Pending ||
-                    r.BookingStatus == ReservationStatus.Confirmed ||
-                    r.BookingStatus == ReservationStatus.Completed).ToList();
-            }
-        }
-
-
-        return reservations
-            .OrderByDescending(r => r.CreatedAt)
-            .Select(r => new GetOwnerReservationsResponse(
-                r.Id,
-                r.PropertyId,
-                r.GuestId,
-                r.StartDate,
-                r.EndDate,
-                r.GuestCount,
-                r.TotalPrice,
-                r.BookingStatus,
-                r.CreatedAt
-            ))
-            .ToList();
     }
 }

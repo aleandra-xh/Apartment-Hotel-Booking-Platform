@@ -2,8 +2,9 @@
 using MediatR;
 
 namespace Booking.Application.Features.Reservations.GetMyReservations;
-
 public sealed record GetMyReservationsQuery(
     ReservationStatus? Status,
-    bool? IsPast
-) : IRequest<List<GetMyReservationsResponse>>;
+    bool? IsPast,
+    int Page = 1,
+    int PageSize = 10
+) : IRequest<GetMyReservationsResult>;

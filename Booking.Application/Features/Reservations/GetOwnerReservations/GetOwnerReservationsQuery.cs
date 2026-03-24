@@ -6,5 +6,7 @@ namespace Booking.Application.Features.Reservations.GetOwnerReservations;
 
 public sealed record GetOwnerReservationsQuery(
     ReservationStatus? Status,
-    bool? IsPast
-) : IRequest<List<GetOwnerReservationsResponse>>;
+    bool? IsPast,
+    int Page = 1,
+    int PageSize = 10
+) : IRequest<GetOwnerReservationsResult>;

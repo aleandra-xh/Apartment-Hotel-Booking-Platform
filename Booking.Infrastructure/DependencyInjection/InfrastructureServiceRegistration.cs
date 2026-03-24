@@ -47,6 +47,7 @@ public static class InfrastructureServiceRegistration
         services.AddScoped<IEmailService, SendGridEmailService>();
         services.AddScoped<IAdminQueryService, AdminQueryService>();
         services.AddScoped<INotificationQueryService, NotificationQueryService>();
+        services.AddScoped<IReservationQueryService, ReservationQueryService>();
 
         services.AddHostedService<ReservationCompletionService>();
         services.AddHostedService<ReservationExpirationService>();
