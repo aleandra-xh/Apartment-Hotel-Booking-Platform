@@ -12,6 +12,14 @@ public sealed class UploadUserProfileImageCommandValidator : AbstractValidator<U
         "image/webp"
     };
 
+    private static readonly string[] AllowedExtensions =
+    {
+        ".jpg",
+        ".jpeg",
+        ".png",
+        ".webp"
+    };
+
     public UploadUserProfileImageCommandValidator()
     {
         RuleFor(x => x.Request.ImageData)
@@ -26,12 +34,18 @@ public sealed class UploadUserProfileImageCommandValidator : AbstractValidator<U
             .NotEmpty()
             .WithMessage("File name is required.")
             .MaximumLength(255)
-            .WithMessage("File name cannot exceed 255 characters.");
+            .WithMessage("File name cannot exceed 255 characters.")
+            .Must(fileName =>
+            {
+                var extension = Path.GetExtension(fileName)?.ToLowerInvariant();
+                return !string.IsNullOrWhiteSpace(extension) && AllowedExtensions.Contains(extension);
+            })
+            .WithMessage("Only .jpg, .jpeg, .png and .webp files are allowed.");
 
         RuleFor(x => x.Request.ContentType)
             .NotEmpty()
             .WithMessage("Content type is required.")
-            .Must(contentType => AllowedContentTypes.Contains(contentType))
+            .Must(contentType => AllowedContentTypes.Contains(contentType.ToLowerInvariant()))
             .WithMessage("Only JPEG, PNG, and WEBP images are allowed.");
     }
 }

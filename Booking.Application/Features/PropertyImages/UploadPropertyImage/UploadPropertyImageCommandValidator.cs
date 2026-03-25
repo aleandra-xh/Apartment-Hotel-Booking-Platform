@@ -12,6 +12,14 @@ public sealed class UploadPropertyImageCommandValidator : AbstractValidator<Uplo
         "image/webp"
     };
 
+    private static readonly string[] AllowedExtensions =
+    {
+        ".jpg",
+        ".jpeg",
+        ".png",
+        ".webp"
+    };
+
     public UploadPropertyImageCommandValidator()
     {
         RuleFor(x => x.Request.PropertyId)
@@ -21,10 +29,10 @@ public sealed class UploadPropertyImageCommandValidator : AbstractValidator<Uplo
         RuleFor(x => x.Request.Images)
             .NotNull()
             .WithMessage("Images are required.")
-            .Must(images => images.Count >= 3)
-            .WithMessage("A property must have at least 3 images.")
+            .Must(images => images.Count >= 1)
+            .WithMessage("At least one image is required.")
             .Must(images => images.Count <= 10)
-            .WithMessage("A property cannot have more than 10 images.");
+            .WithMessage("You cannot upload more than 10 images in a single request.");
 
         RuleForEach(x => x.Request.Images).ChildRules(image =>
         {
@@ -40,12 +48,18 @@ public sealed class UploadPropertyImageCommandValidator : AbstractValidator<Uplo
                 .NotEmpty()
                 .WithMessage("File name is required.")
                 .MaximumLength(255)
-                .WithMessage("File name cannot exceed 255 characters.");
+                .WithMessage("File name cannot exceed 255 characters.")
+                .Must(fileName =>
+                {
+                    var extension = Path.GetExtension(fileName)?.ToLowerInvariant();
+                    return !string.IsNullOrWhiteSpace(extension) && AllowedExtensions.Contains(extension);
+                })
+                .WithMessage("Only .jpg, .jpeg, .png and .webp files are allowed.");
 
             image.RuleFor(i => i.ContentType)
                 .NotEmpty()
                 .WithMessage("Content type is required.")
-                .Must(contentType => AllowedContentTypes.Contains(contentType))
+                .Must(contentType => AllowedContentTypes.Contains(contentType.ToLowerInvariant()))
                 .WithMessage("Only JPEG, PNG, and WEBP images are allowed.");
         });
     }

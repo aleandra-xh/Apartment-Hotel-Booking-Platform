@@ -1,11 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
+﻿
 using Booking.Application.Abstractions.PropertyImages;
 using Microsoft.EntityFrameworkCore;
 
 namespace Booking.Infrastructure.Persistence;
+
 public sealed class PropertyImageRepository : IPropertyImageRepository
 {
     private readonly BookingDbContext _dbContext;
@@ -19,5 +17,11 @@ public sealed class PropertyImageRepository : IPropertyImageRepository
     {
         return await _dbContext.PropertyImages
             .AnyAsync(pi => pi.PropertyId == propertyId && pi.ImageHash == imageHash, ct);
+    }
+
+    public async Task<int> CountByPropertyIdAsync(Guid propertyId, CancellationToken ct = default)
+    {
+        return await _dbContext.PropertyImages
+            .CountAsync(pi => pi.PropertyId == propertyId, ct);
     }
 }

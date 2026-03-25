@@ -1,4 +1,5 @@
-﻿using Booking.Application.Abstractions.Properties;
+﻿
+using Booking.Application.Abstractions.Properties;
 using Booking.Application.Abstractions.PropertyImages;
 using Booking.Application.Abstractions.Security;
 using Booking.Application.Common.Exceptions;
@@ -41,6 +42,12 @@ public sealed class UploadPropertyImageCommandHandler : IRequestHandler<UploadPr
 
         if (property.OwnerId != ownerId)
             throw new UnauthorizedException("You are not allowed to upload images for this property.");
+
+        var existingImagesCount = await _propertyImageReadRepository.CountByPropertyIdAsync(property.Id, ct);
+        var newImagesCount = request.Request.Images.Count;
+
+        if (existingImagesCount + newImagesCount > 10)
+            throw new ConflictException("A property cannot have more than 10 images in total.");
 
         var requestImageHashes = request.Request.Images
             .Select(i => ComputeSha256(i.ImageData))

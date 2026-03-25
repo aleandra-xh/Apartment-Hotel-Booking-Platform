@@ -5,31 +5,6 @@ using Microsoft.AspNetCore.SignalR;
 
 namespace Booking.API.Realtime;
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 public sealed class NotificationRealtimeService : INotificationRealtimeService
 {
     private readonly IHubContext<NotificationHub> _hubContext;
