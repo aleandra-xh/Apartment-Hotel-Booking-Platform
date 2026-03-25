@@ -1,4 +1,5 @@
 ﻿using Booking.Application.Abstractions.Addresses;
+using Booking.Application.Abstractions.Logging;
 using Booking.Application.Abstractions.LogIn;
 using Booking.Application.Abstractions.Notifications;
 using Booking.Application.Abstractions.Properties;
@@ -14,6 +15,7 @@ using Booking.Application.Generics.Interfaces;
 using Booking.Infrastructure.BackgroundJobs;
 using Booking.Infrastructure.Contracts.AuthService;
 using Booking.Infrastructure.Contracts.Security;
+using Booking.Infrastructure.Kafka;
 using Booking.Infrastructure.Notifications;
 using Booking.Infrastructure.Persistence;
 using Booking.Infrastructure.Queries;
@@ -49,6 +51,7 @@ public static class InfrastructureServiceRegistration
         services.AddScoped<INotificationQueryService, NotificationQueryService>();
         services.AddScoped<IReservationQueryService, ReservationQueryService>();
         services.AddScoped<IRefreshTokenService, RefreshTokenService>();
+        services.AddSingleton<IEventLogProducer, KafkaEventLogProducer>();
 
         services.AddHostedService<ReservationCompletionService>();
         services.AddHostedService<ReservationExpirationService>();
