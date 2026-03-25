@@ -1,0 +1,442 @@
+﻿namespace Booking.API.wwwroot;
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Live Notifications Monitor</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
+
+    <style>
+        :root {
+            --bg: #f7f9fc;
+            --card: #ffffff;
+            --text: #1f2937;
+            --muted: #6b7280;
+            --border: #e5e7eb;
+            --accent: #2563eb;
+            --success: #15803d;
+            --danger: #dc2626;
+            --warning: #d97706;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Inter, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 32px auto;
+            padding: 0 20px;
+        }
+
+        .page-title {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .page-subtitle {
+            color: var(--muted);
+            margin-bottom: 24px;
+        }
+
+        .panel {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 20px;
+            margin-bottom: 18px;
+            box-shadow: 0 8px 24px rgba(15, 23, 42, 0.04);
+        }
+
+        .panel-title {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 14px;
+        }
+
+        .field {
+            margin-bottom: 14px;
+        }
+
+        .label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+
+        .input {
+            width: 100%;
+            padding: 11px 13px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            font-size: 14px;
+            outline: none;
+        }
+
+            .input:focus {
+                border-color: var(--accent);
+            }
+
+        .row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            border: none;
+            border-radius: 10px;
+            padding: 10px 16px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #374151;
+            color: white;
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .status-wrap {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            border-radius: 999px;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .status-connected {
+            background: #dcfce7;
+            color: var(--success);
+        }
+
+        .status-disconnected {
+            background: #fee2e2;
+            color: var(--danger);
+        }
+
+        .status-connecting {
+            background: #fef3c7;
+            color: var(--warning);
+        }
+
+        .meta {
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .notifications {
+            display: grid;
+            gap: 12px;
+        }
+
+        .notification-card {
+            border: 1px solid var(--border);
+            border-left: 5px solid var(--accent);
+            border-radius: 12px;
+            padding: 14px;
+            background: #f8fbff;
+        }
+
+        .notification-header {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            align-items: start;
+            margin-bottom: 10px;
+        }
+
+        .notification-title {
+            font-size: 15px;
+            font-weight: 700;
+        }
+
+        .notification-type {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--accent);
+            white-space: nowrap;
+        }
+
+        .notification-message {
+            font-size: 14px;
+            line-height: 1.5;
+            margin-bottom: 10px;
+        }
+
+        .notification-footer {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        .log-box {
+            background: #111827;
+            color: #e5e7eb;
+            border-radius: 12px;
+            padding: 14px;
+            min-height: 220px;
+            max-height: 320px;
+            overflow-y: auto;
+            font-family: Consolas, monospace;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .log-line {
+            margin-bottom: 6px;
+        }
+
+        .log-info {
+            color: #93c5fd;
+        }
+
+        .log-success {
+            color: #86efac;
+        }
+
+        .log-warning {
+            color: #fcd34d;
+        }
+
+        .log-error {
+            color: #fca5a5;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: var(--muted);
+            padding: 24px 10px;
+            border: 1px dashed var(--border);
+            border-radius: 12px;
+            background: #fafafa;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="page-title">Live Notifications Monitor</div>
+        <div class="page-subtitle">Connect with your JWT token and watch notifications arrive in real time.</div>
+
+        <div class="panel">
+            <div class="panel-title">Connection Settings</div>
+
+            <div class="status-wrap">
+                <div id="statusPill" class="status-pill status-disconnected">● Disconnected</div>
+                <div id="connectionInfo" class="meta">No active SignalR connection.</div>
+            </div>
+
+            <div class="field">
+                <label class="label" for="apiBase">API Base URL</label>
+                <input id="apiBase" class="input" type="text" value="http://localhost:5281" placeholder="http://localhost:5281" />
+            </div>
+
+            <div class="field">
+                <label class="label" for="tokenInput">JWT Token</label>
+                <input id="tokenInput" class="input" type="text" placeholder="Paste token here without 'Bearer'" />
+            </div>
+
+            <div class="row">
+                <button id="connectBtn" class="btn btn-primary">Start Listening</button>
+                <button id="disconnectBtn" class="btn btn-danger" disabled>Stop Listening</button>
+                <button id="clearBtn" class="btn btn-secondary">Clear Notifications</button>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="panel-title">Incoming Notifications</div>
+            <div id="notifications" class="notifications">
+                <div class="empty-state" id="emptyState">No notifications received yet.</div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="panel-title">Activity Log</div>
+            <div id="logBox" class="log-box"></div>
+        </div>
+    </div>
+
+    <script>
+        let connection = null;
+
+        const statusPill = document.getElementById('statusPill');
+        const connectionInfo = document.getElementById('connectionInfo');
+        const logBox = document.getElementById('logBox');
+        const notifications = document.getElementById('notifications');
+        const emptyState = document.getElementById('emptyState');
+        const apiBaseInput = document.getElementById('apiBase');
+        const tokenInput = document.getElementById('tokenInput');
+        const connectBtn = document.getElementById('connectBtn');
+        const disconnectBtn = document.getElementById('disconnectBtn');
+        const clearBtn = document.getElementById('clearBtn');
+
+        function addLog(message, type = 'info') {
+            const line = document.createElement('div');
+            line.className = `log-line log-${type}`;
+            const now = new Date().toLocaleTimeString();
+            line.textContent = `[${now}] ${message}`;
+            logBox.appendChild(line);
+            logBox.scrollTop = logBox.scrollHeight;
+        }
+
+        function setStatus(state, text) {
+            statusPill.className = 'status-pill';
+            if (state === 'connected') {
+                statusPill.classList.add('status-connected');
+                statusPill.textContent = '● Connected';
+            } else if (state === 'connecting') {
+                statusPill.classList.add('status-connecting');
+                statusPill.textContent = '● Connecting';
+            } else {
+                statusPill.classList.add('status-disconnected');
+                statusPill.textContent = '● Disconnected';
+            }
+
+            connectionInfo.textContent = text;
+        }
+
+        function formatDate(value) {
+            if (!value) return '-';
+            return new Date(value).toLocaleString();
+        }
+
+        function renderNotification(n) {
+            if (emptyState) {
+                emptyState.remove();
+            }
+
+            const card = document.createElement('div');
+            card.className = 'notification-card';
+            card.innerHTML = `
+                <div class="notification-header">
+                    <div class="notification-title">${n.title ?? 'Notification'}</div>
+                    <div class="notification-type">${n.type ?? '-'}</div>
+                </div>
+                <div class="notification-message">${n.message ?? '-'}</div>
+                <div class="notification-footer">
+                    <div><strong>ID:</strong> ${n.id ?? '-'}</div>
+                    <div><strong>Read:</strong> ${n.isRead ? 'Yes' : 'No'}</div>
+                    <div><strong>Created:</strong> ${formatDate(n.createdAt)}</div>
+                </div>
+            `;
+
+            notifications.prepend(card);
+        }
+
+        async function connectToHub() {
+            const apiBase = apiBaseInput.value.trim();
+            const token = tokenInput.value.trim();
+
+            if (!apiBase) {
+                alert('Enter API Base URL.');
+                return;
+            }
+
+            if (!token) {
+                alert('Paste JWT token first.');
+                return;
+            }
+
+            setStatus('connecting', 'Trying to connect to SignalR hub...');
+            addLog('Starting SignalR connection...', 'warning');
+
+            connection = new signalR.HubConnectionBuilder()
+                .withUrl(`${apiBase}/hubs/notifications?access_token=${token}`)
+                .withAutomaticReconnect([0, 2000, 5000, 10000])
+                .configureLogging(signalR.LogLevel.Information)
+                .build();
+
+            connection.on('notificationReceived', (notification) => {
+                addLog('Notification received live.', 'success');
+                console.log('notificationReceived:', notification);
+                renderNotification(notification);
+            });
+
+            connection.onreconnecting(() => {
+                setStatus('connecting', 'Connection lost, reconnecting...');
+                addLog('Connection lost. Reconnecting...', 'warning');
+            });
+
+            connection.onreconnected(() => {
+                setStatus('connected', 'SignalR connection restored.');
+                addLog('Reconnected successfully.', 'success');
+            });
+
+            connection.onclose(() => {
+                setStatus('disconnected', 'Connection closed.');
+                addLog('Connection closed.', 'error');
+                connectBtn.disabled = false;
+                disconnectBtn.disabled = true;
+            });
+
+            try {
+                await connection.start();
+                setStatus('connected', `Listening on ${apiBase}/hubs/notifications`);
+                addLog('Connected successfully.', 'success');
+                connectBtn.disabled = true;
+                disconnectBtn.disabled = false;
+            } catch (error) {
+                setStatus('disconnected', 'Connection failed.');
+                addLog(`Connection failed: ${error.message}`, 'error');
+            }
+        }
+
+        async function disconnectFromHub() {
+            if (!connection) return;
+
+            await connection.stop();
+            connectBtn.disabled = false;
+            disconnectBtn.disabled = true;
+            addLog('Disconnected manually.', 'warning');
+        }
+
+        function clearNotificationList() {
+            notifications.innerHTML = '<div class="empty-state" id="emptyState">No notifications received yet.</div>';
+        }
+
+        connectBtn.addEventListener('click', connectToHub);
+        disconnectBtn.addEventListener('click', disconnectFromHub);
+        clearBtn.addEventListener('click', clearNotificationList);
+
+        setStatus('disconnected', 'No active SignalR connection.');
+    </script>
+</body>
+</html>

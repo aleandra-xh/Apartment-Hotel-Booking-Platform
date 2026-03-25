@@ -58,8 +58,8 @@ public static class InfrastructureServiceRegistration
     }
 
     private static IServiceCollection ConfigureJWT(
-        this IServiceCollection services,
-        IConfiguration configuration)
+     this IServiceCollection services,
+     IConfiguration configuration)
     {
         var jwtSettings = configuration.GetSection("Jwt");
         var secretKey = jwtSettings.GetValue<string>("SecretKey");
@@ -92,6 +92,23 @@ public static class InfrastructureServiceRegistration
                     Encoding.UTF8.GetBytes(secretKey)
                 ),
                 ClockSkew = TimeSpan.Zero
+            };
+
+            options.Events = new JwtBearerEvents
+            {
+                OnMessageReceived = context =>
+                {
+                    var accessToken = context.Request.Query["access_token"];
+                    var path = context.HttpContext.Request.Path;
+
+                    if (!string.IsNullOrEmpty(accessToken) &&
+                        path.StartsWithSegments("/hubs/notifications"))
+                    {
+                        context.Token = accessToken;
+                    }
+
+                    return Task.CompletedTask;
+                }
             };
         });
 
