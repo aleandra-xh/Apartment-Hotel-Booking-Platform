@@ -48,6 +48,7 @@ public static class InfrastructureServiceRegistration
         services.AddScoped<IAdminQueryService, AdminQueryService>();
         services.AddScoped<INotificationQueryService, NotificationQueryService>();
         services.AddScoped<IReservationQueryService, ReservationQueryService>();
+        services.AddScoped<IRefreshTokenService, RefreshTokenService>();
 
         services.AddHostedService<ReservationCompletionService>();
         services.AddHostedService<ReservationExpirationService>();

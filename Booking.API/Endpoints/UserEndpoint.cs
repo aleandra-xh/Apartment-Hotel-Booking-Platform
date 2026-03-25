@@ -1,4 +1,6 @@
 ﻿using Booking.Application.Features.Auth.Login;
+using Booking.Application.Features.Auth.Logout;
+using Booking.Application.Features.Auth.RefreshToken;
 using Booking.Application.Features.Users.BecomeOwner;
 using Booking.Application.Features.Users.ChangePassword;
 using Booking.Application.Features.Users.DeleteUserProfileImage;
@@ -111,6 +113,22 @@ public static class UserEndpoint
             return Results.Ok(result);
         })
         .WithName("GetMyProfile");
+
+        // ---Refresh Token---
+        app.MapPost("/v1/users/auth/refresh", async (RefreshTokenCommand command, ISender sender) =>
+        {
+            var result = await sender.Send(command);
+            return Results.Ok(result);
+        })
+        .WithName("RefreshToken");
+
+        // ---Logout---
+        app.MapPost("/v1/users/auth/logout", async (LogoutCommand command, ISender sender) =>
+        {
+            await sender.Send(command);
+            return Results.Ok("Logged out successfully.");
+        })
+        .WithName("LogoutUser");
     }
 
 }

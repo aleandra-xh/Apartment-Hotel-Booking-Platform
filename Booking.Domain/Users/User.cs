@@ -4,6 +4,7 @@ using Booking.Domain.Properties;
 using Booking.Domain.Reservations;
 using Booking.Domain.Reviews;
 using Booking.Domain.UserRoles;
+using Booking.Domain.RefreshTokens;
 using System.ComponentModel.DataAnnotations;
 
 namespace Booking.Domain.Users;
@@ -32,6 +33,7 @@ public class User
     public List<Review> Reviews { get; set; } = new();
     public List<Property> Properties { get; set; } = new();
     public List<Notification> Notifications { get; set; } = new();
+    public List<RefreshToken> RefreshTokens { get; set; } = new();
 
     public User(Guid id, string firstName, string lastName, string email, string passwordHash, string phoneNumber)
     {

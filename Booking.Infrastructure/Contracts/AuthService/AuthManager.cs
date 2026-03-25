@@ -16,7 +16,10 @@ public sealed class AuthManager : IAuthManager
     {
         _config = config;
     }
-
+    public DateTime GetAccessTokenExpiresAtUtc()
+    {
+        return DateTime.UtcNow.AddSeconds(GetExpiresSeconds());
+    }
     public int GetExpiresSeconds()
     {
         var minutesStr = _config["Jwt:ExpiresMinutes"];

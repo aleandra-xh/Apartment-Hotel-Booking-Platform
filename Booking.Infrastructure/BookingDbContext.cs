@@ -12,6 +12,7 @@ using Booking.Domain.Reviews;
 using Booking.Domain.Roles;
 using Booking.Domain.UserRoles;
 using Booking.Domain.Users;
+using Booking.Domain.RefreshTokens;
 using Microsoft.EntityFrameworkCore;
 
 namespace Booking.Infrastructure
@@ -35,6 +36,7 @@ namespace Booking.Infrastructure
         public DbSet<PropertySeasonalPrice> PropertySeasonalPrices => Set<PropertySeasonalPrice>();
         public DbSet<PropertyDiscount> PropertyDiscounts => Set<PropertyDiscount>();
         public DbSet<Notification> Notifications => Set<Notification>();
+        public DbSet<RefreshToken> RefreshTokens {  get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -299,6 +301,26 @@ namespace Booking.Infrastructure
 
             modelBuilder.Entity<Notification>()
                 .HasIndex(n => n.UserId);
+
+            // REFRESH TOKENS
+            modelBuilder.Entity<RefreshToken>()
+                .HasOne(rt => rt.User)
+                .WithMany(u => u.RefreshTokens)
+                .HasForeignKey(rt => rt.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<RefreshToken>()
+                .Property(rt => rt.Token)
+                .HasMaxLength(200)
+                .IsRequired();
+
+            modelBuilder.Entity<RefreshToken>()
+                .HasIndex(rt => rt.Token)
+                .IsUnique();
+
+            modelBuilder.Entity<RefreshToken>()
+                .HasIndex(rt => rt.UserId);
+
         }
 
     }

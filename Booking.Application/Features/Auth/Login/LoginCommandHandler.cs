@@ -11,15 +11,18 @@ public sealed class LoginCommandHandler : IRequestHandler<LoginCommand, LoginRes
     private readonly IUserRepository _userRepository;
     private readonly IPasswordHasher _passwordHasher;
     private readonly IAuthManager _authManager;
+    private readonly IRefreshTokenService _refreshTokenService;
 
     public LoginCommandHandler(
         IUserRepository userRepository,
         IPasswordHasher passwordHasher,
-        IAuthManager authManager)
+        IAuthManager authManager,
+        IRefreshTokenService refreshTokenService)
     {
         _userRepository = userRepository;
         _passwordHasher = passwordHasher;
         _authManager = authManager;
+        _refreshTokenService = refreshTokenService;
     }
 
     public async Task<LoginResponse> Handle(LoginCommand request, CancellationToken ct)
@@ -41,10 +44,19 @@ public sealed class LoginCommandHandler : IRequestHandler<LoginCommand, LoginRes
         if (!_passwordHasher.Verify(password, user.Password))
             throw new UnauthorizedException("Invalid credentials");
 
-        var token = _authManager.GenerateToken(user);
+        var accessToken = _authManager.GenerateToken(user);
+        var refreshToken = _refreshTokenService.GenerateRefreshToken();
+        var refreshTokenExpiresAtUtc = DateTime.UtcNow.AddDays(7);
+
+        await _refreshTokenService.SaveRefreshTokenAsync(
+            user,
+            refreshToken,
+            refreshTokenExpiresAtUtc,
+            ct);
 
         return new LoginResponse(
-            token,
+            accessToken,
+            refreshToken,
             "Bearer",
             _authManager.GetExpiresSeconds()
         );
