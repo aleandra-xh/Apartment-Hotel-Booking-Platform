@@ -29,8 +29,8 @@ public sealed class SearchPropertiesQueryValidator : AbstractValidator<SearchPro
             .When(x => !string.IsNullOrWhiteSpace(x.Request.City));
 
         RuleFor(x => x.Request.StartDate)
-       .Must(startDate => !startDate.HasValue || startDate.Value.Date >= DateTime.UtcNow.Date)
-       .WithMessage("Start date cannot be in the past.");
+            .Must(startDate => !startDate.HasValue || startDate.Value.Date >= DateTime.UtcNow.Date)
+            .WithMessage("Start date cannot be in the past.");
 
         RuleFor(x => x.Request.EndDate)
             .Must((request, endDate) =>
@@ -75,8 +75,9 @@ public sealed class SearchPropertiesQueryValidator : AbstractValidator<SearchPro
                 string.IsNullOrWhiteSpace(sortBy) ||
                 sortBy.Equals("name", StringComparison.OrdinalIgnoreCase) ||
                 sortBy.Equals("price", StringComparison.OrdinalIgnoreCase) ||
-                sortBy.Equals("rating", StringComparison.OrdinalIgnoreCase))
-            .WithMessage("SortBy must be one of: name, price, rating.");
+                sortBy.Equals("rating", StringComparison.OrdinalIgnoreCase) ||
+                sortBy.Equals("popularity", StringComparison.OrdinalIgnoreCase))
+            .WithMessage("SortBy must be one of: name, price, rating, popularity.");
 
         RuleFor(x => x.Request.SortDirection)
             .Must(sortDirection =>

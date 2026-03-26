@@ -212,6 +212,18 @@ public sealed class PropertyRepository : IPropertyRepository
                         .Where(rv => p.Reservations.Select(r => r.Id).Contains(rv.ReservationId))
                         .Average(rv => (double?)rv.Rating) ?? 0);
         }
+        else if (sortByNormalized == "popularity")
+        {
+            orderedQuery = sortDirectionNormalized == "asc"
+                ? query.OrderBy(p =>
+                    p.Reservations.Count(r =>
+                        r.BookingStatus == ReservationStatus.Confirmed ||
+                        r.BookingStatus == ReservationStatus.Completed))
+                : query.OrderByDescending(p =>
+                    p.Reservations.Count(r =>
+                        r.BookingStatus == ReservationStatus.Confirmed ||
+                        r.BookingStatus == ReservationStatus.Completed));
+        }
         else
         {
             orderedQuery = sortDirectionNormalized == "desc"
